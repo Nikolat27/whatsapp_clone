@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: "San Francisco";
+    font-weight: 400;
+    src: url("https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-regular-webfont.woff");
+}
+
+.user-text {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 100%;
+    display: inline-block;
+}
+
+.custom-shadow-inset {
+    box-shadow: 0 0 16px rgba(0, 0, 0, 0.30);
+}
+
+.custom-shadow-inset2 {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.12);
+}
+
+.custom-shadow-inset3 {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.14);
+}
+
+.custom-shadow-inset4 {
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+}
+
+.active {
+    background-color: #d9dbdf;
+}
