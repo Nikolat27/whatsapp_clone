@@ -1,5 +1,16 @@
 <script setup lang="ts">
+import { reactive } from "vue";
+import type { Reactive } from "vue";
 
+const openChatOptions = reactive([])
+const toggleChatOptions = (chatId: Number) => {
+    if (openChatOptions.includes(chatId)) {
+        openChatOptions.pop()
+    } else {
+        openChatOptions.pop()
+        openChatOptions.push(chatId)
+    }
+}
 </script>
 <template>
     <div class="flex flex-row w-full h-[64px] bg-[#f0f2f5] justify-start items-center pl-4 top-0 sticky">
@@ -31,28 +42,66 @@
             </button>
         </div>
     </div>
-    <div class="w-full h-full px-16 py-12 flex flex-col"
+    <div class="w-full h-full gap-y-2 px-16 py-12 flex flex-col"
         style="background-image: url('../../whatsapp_default_background.jpg');">
         <div class="message-out w-full h-auto min-h-[33px] flex mb-[1px]">
-            <div class="custom-shadow-inset2 flex flex-row flex-wrap max-w-[603px] w-auto font-normal
-             bg-[#d9fdd3] px-2 py-1 h-full rounded-2xl items-center">
+            <div class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal
+             bg-[#d9fdd3] px-2 h-full rounded-2xl items-center">
                 <p class="user-text text-[14.2px] flex-wrap">
-                    sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+                    asdfasdf
                 </p>
-                <span class="text-[11px] self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
+                <div class="relative w-full h-2 flex flex-row items-center mt-2">
+                    <span class="text-[11px] mr-1 self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
+                    <button class="flex cursor-pointer justify-center mb-2 ml-auto items-center w-[20px] h-[20px]">
+                        <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
+                    </button>
+                    <div class="absolute top-4 left-[70px] w-[192px] custom-shadow-inset bg-white z-50 h-auto py-3
+                     flex flex-col">
+                        <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
+                            <span>Reply</span>
+                        </div>
+                        <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
+                            <span>Edit</span>
+                        </div>
+                        <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
+                            <span>Delete</span>
+                        </div>
+                        <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
+                            <span>Forward</span>
+                        </div>
+                        <div class="w-full h-[40px] cursor-pointer  hover:bg-[#f5f6f6] pl-6 flex items-center">
+                            <span>Copy</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="message-out w-full h-auto min-h-[33px] flex mb-[1px]">
-            <div class="custom-shadow-inset2 flex flex-row flex-wrap max-w-[603px] w-auto font-normal
-             bg-[#d9fdd3] px-2 py-1 h-full rounded-2xl items-center">
-                <p class="user-text text-[14.2px] flex-wrap">Hey babe</p>
-                <span class="text-[11px] self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
+            <div class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal
+             bg-[#d9fdd3] px-2 h-full rounded-2xl items-center">
+                <p class="user-text text-[14.2px] flex-wrap">
+                    asdfasdf
+                </p>
+                <div class="w-full h-2 flex flex-row items-center mt-2">
+                    <span class="text-[11px] mr-1 self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
+                    <button class="flex cursor-pointer justify-center mb-2 ml-auto items-center w-[20px] h-[20px]">
+                        <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="message-out justify-end w-full h-auto min-h-[33px] flex mb-[1px]">
-            <div class="custom-shadow-inset2 flex flex-row flex-wrap max-w-[603px] w-auto font-normal bg-white px-2 py-1 h-full rounded-2xl items-center">
-                <p class="user-text text-[14.2px] flex-wrap">Hi</p>
-                <span class="text-[11px] self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
+        <div class="message-out flex justify-self-end justify-end w-full h-auto min-h-[33px] mb-[1px]">
+            <div class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal
+             bg-white px-2 h-full rounded-2xl items-center">
+                <p class="user-text text-[14.2px] flex-wrap">
+                    asdfasdf
+                </p>
+                <div class="w-full h-2 flex flex-row items-center mt-2">
+                    <span class="text-[11px] mr-1 self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
+                    <button class="flex cursor-pointer justify-center mb-2 ml-auto items-center w-[20px] h-[20px]">
+                        <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
+                    </button>
+                </div>
             </div>
         </div>
     </div>

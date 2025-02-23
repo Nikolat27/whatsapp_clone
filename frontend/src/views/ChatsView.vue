@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, reactive, Reactive } from 'vue'
 import type { Ref } from 'vue';
 import ClipLoader from 'vue-spinner/src/ClipLoader.vue'
 import sharedState from '../sharedState';
 
 import ArchiveChatsComponent from '/src/components/ArchiveChatsComponent.vue';
+import NewChatPageComponent from '/src/components/NewChatComponent.vue';
+
 // Icons
 import arrowLeftIcon from '/src/assets/icons/svg-icons/arrow-left-green.svg'
 
@@ -41,12 +43,33 @@ const toggleArchiveChat = () => {
 watch(() => sharedState.isArchiveChatOpen, (newVal) => {
     isArchiveChatOpen.value = newVal
 })
+
+const openChatOptions = reactive([])
+const toggleChatOptions = (chatId: Number) => {
+    if (openChatOptions.includes(chatId)) {
+        openChatOptions.pop()
+    } else {
+        openChatOptions.pop()
+        openChatOptions.push(chatId)
+    }
+}
+
+watch(() => sharedState.isNewChatPageOpen, (newVal) => {
+    isNewChatPageOpen.value = newVal
+})
+
+const isNewChatPageOpen = ref(false)
+const toggleNewChatPage = () => {
+    isNewChatPageOpen.value = !isNewChatPageOpen.value
+    sharedState.isNewChatPageOpen = !sharedState.isNewChatPageOpen
+}
 </script>
 <template>
-    <div v-if="!isArchiveChatOpen" class="flex flex-col w-full h-full">
+    <div v-if="!isArchiveChatOpen && !isNewChatPageOpen" class="flex flex-col w-full h-full">
         <div class="select-none flex flex-row relative h-[64px] w-full pt-4 pl-4 justify-start items-center">
             <h1 class="text-[22px] font-bold">Chats</h1>
-            <button class="ml-auto w-10 h-10 rounded-full cursor-pointer flex justify-center items-center">
+            <button @click="toggleNewChatPage"
+                class="ml-auto w-10 h-10 rounded-full cursor-pointer flex justify-center items-center">
                 <span><svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class=""
                         fill="none">
                         <title>new-chat-outline</title>
@@ -145,18 +168,78 @@ watch(() => sharedState.isArchiveChatOpen, (newVal) => {
         </div>
         <div v-if="!isChatLoading" class="select-none flex flex-col w-full">
             <div class="flex border-b border-gray-200 flex-row w-full h-[72px] cursor-pointer
-            justify-start items-center hover:bg-[#f5f6f6] pl-3">
+                justify-start items-center hover:bg-[#f5f6f6] pl-3">
                 <img class="w-[49px] h-[49px] rounded-full object-cover" src="../../barcelona-logo.jpg" alt="">
                 <div class="flex flex-col ml-4 w-full">
                     <div class="flex flex-row w-full">
                         <p class="font-normal text-[17px]">Friend..</p>
                         <span class="ml-auto mr-3 font-normal text-[12px] text-gray-500">Yesterday</span>
                     </div>
-                    <div class="flex flex-row items-center w-full">
+                    <div class="relative flex flex-row items-center w-full">
                         <p class="font-normal text-[14px] text-gray-600">Your last chat...</p>
-                        <button class="flex cursor-pointer justify-center ml-auto mr-3 items-center w-[24px] h-[24px]">
+                        <button @click="toggleChatOptions(1)"
+                            class="flex cursor-pointer justify-center ml-auto mr-3 items-center w-[24px] h-[24px]">
                             <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
                         </button>
+                        <div v-if="openChatOptions.includes(1)" class="absolute top-8 right-2 flex w-[198px] h-auto py-2 flex-col items-center
+                         bg-white z-[999] custom-shadow-inset cursor-default">
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Archive chat</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Mute notifications</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Pin chat</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Mark as unread</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Block</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Delete chat</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex border-b border-gray-200 flex-row w-full h-[72px] cursor-pointer
+                justify-start items-center hover:bg-[#f5f6f6] pl-3">
+                <img class="w-[49px] h-[49px] rounded-full object-cover" src="../../barcelona-logo.jpg" alt="">
+                <div class="flex flex-col ml-4 w-full">
+                    <div class="flex flex-row w-full">
+                        <p class="font-normal text-[17px]">Friend..</p>
+                        <span class="ml-auto mr-3 font-normal text-[12px] text-gray-500">Yesterday</span>
+                    </div>
+                    <div class="relative flex flex-row items-center w-full">
+                        <p class="font-normal text-[14px] text-gray-600">Your last chat...</p>
+                        <button @click="toggleChatOptions(2)"
+                            class="flex cursor-pointer justify-center ml-auto mr-3 items-center w-[24px] h-[24px]">
+                            <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
+                        </button>
+                        <div v-if="openChatOptions.includes(2)" class="absolute top-8 right-2 flex w-[198px] h-auto py-2 flex-col items-center
+                         bg-white z-[999] custom-shadow-inset cursor-default">
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Archive chat</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Mute notifications</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Pin chat</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Mark as unread</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Block</span>
+                            </div>
+                            <div class="w-full h-[40px] flex items-center pl-6 cursor-pointer hover:bg-[#f5f6f6]">
+                                <span>Delete chat</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -165,7 +248,10 @@ watch(() => sharedState.isArchiveChatOpen, (newVal) => {
             <ClipLoader size="45px"></ClipLoader>
         </div>
     </div>
-    <div v-else class="flex flex-col w-full h-full">
+    <div v-if="isArchiveChatOpen && !isNewChatPageOpen" class="flex flex-col w-full h-full">
         <ArchiveChatsComponent></ArchiveChatsComponent>
+    </div>
+    <div v-if="isNewChatPageOpen && !isArchiveChatOpen" class="flex flex-col w-full h-full">
+        <NewChatPageComponent></NewChatPageComponent>
     </div>
 </template>
