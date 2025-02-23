@@ -106,7 +106,7 @@ const toggleNewChatPage = () => {
             </div>
         </div>
         <div class="select-none flex flex-row gap-x-1 ml-3 mt-6 w-[93%] h-[35px] justify-center
-     items-center bg-[#f0f2f5] rounded-lg">
+            items-center bg-[#f0f2f5] rounded-lg">
             <button v-if="!isSearchModeOn" @click="toggleSearchMode" class="w-[24px] h-[24px] ml-2 cursor-pointer">
                 <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class=""
                     version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24">

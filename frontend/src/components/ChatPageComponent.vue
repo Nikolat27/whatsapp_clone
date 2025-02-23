@@ -1,26 +1,125 @@
 <script setup lang="ts">
-import { reactive } from "vue";
-import type { Reactive } from "vue";
+import { ref, reactive } from "vue";
+import type { Ref, Reactive } from "vue";
+import arrowLeftIcon from '/src/assets/icons/svg-icons/arrow-left-green.svg'
 
-const openChatOptions = reactive([])
-const toggleChatOptions = (chatId: Number) => {
-    if (openChatOptions.includes(chatId)) {
-        openChatOptions.pop()
+const isChatOptionOpen = ref(false)
+const toggleChatOption = () => {
+    isChatOptionOpen.value = !isChatOptionOpen.value
+}
+
+
+const openChatMessageOptions: Reactive<any> = reactive([])
+const toggleChatMessageOptions = (chatId: Number) => {
+    if (openChatMessageOptions.includes(chatId)) {
+        openChatMessageOptions.pop()
     } else {
-        openChatOptions.pop()
-        openChatOptions.push(chatId)
+        openChatMessageOptions.pop()
+        openChatMessageOptions.push(chatId)
     }
+}
+
+
+const dialogType: Ref<String> = ref(null)
+const handleLayerClick = (event: Event) => {
+    if (event.target === event.currentTarget) {
+        console.log('hi')
+    }
+}
+
+const searchText: Ref<String> = ref('')
+const isSearchModeOn: Ref<Boolean> = ref(false)
+const toggleSearchMode = () => {
+    isSearchModeOn.value = !isSearchModeOn.value
+}
+
+const closeSearchBar = () => {
+    isChatOptionOpen.value = false
+    searchText.value = ''
+    isSearchModeOn.value = false
 }
 </script>
 <template>
-    <div class="flex flex-row w-full h-[64px] bg-[#f0f2f5] justify-start items-center pl-4 top-0 sticky">
+    <div @click="handleLayerClick" v-if="dialogType"
+        class="fixed w-screen h-screen inset-0 z-[200] backdrop-blur-xs flex justify-center items-center">
+        <div v-if="dialogType === 'clearChat'"
+            class="w-[500px] h-[215px] pt-6 pl-6 bg-white z-[501] custom-shadow-inset flex flex-col select-none">
+            <h1 class="text-[20px] font-normal mb-4">Clear This chat?</h1>
+            <span class="text-[14px] font-normal mb-4 text-gray-500">This chat will be empty but will remain in your
+                chat list</span>
+            <div class="w-full flex flex-row gap-x-4 mt-auto mb-6">
+                <button
+                    class="cursor-pointer hover:shadow-2xs rounded-3xl w-[90px] ml-auto text-center h-[38px] bg-white text-[#008069] border border-gray-200">
+                    Cancel
+                </button>
+                <button
+                    class="cursor-pointer rounded-3xl w-[114px] mr-8 text-center border-none h-[38px] bg-[#008069] text-white border border-gray-300">
+                    Clear chat
+                </button>
+            </div>
+        </div>
+        <div v-else-if="dialogType === 'blockUser'"
+            class="w-[500px] h-[215px] pt-6 pl-6 bg-white z-[501] custom-shadow-inset flex flex-col select-none">
+            <h1 class="text-[20px] font-normal mb-4">Block user-name</h1>
+            <span class="text-[14px] font-normal mb-4 text-gray-500">Blocked contacts will no longer be able to call
+                you
+                or send you messages. This contact will not be notified</span>
+            <div class="w-full flex flex-row gap-x-4 mt-auto mb-6">
+                <button class="cursor-pointer hover:shadow-2xs rounded-3xl w-[90px] ml-auto text-center h-[38px]
+                 bg-white text-[14px] text-[#008069] border border-gray-200">
+                    Cancel
+                </button>
+                <button class="cursor-pointer rounded-3xl w-[83px] mr-8 text-center border-none h-[38px] bg-[#008069]
+                 text-white border text-[14px] border-gray-300">
+                    Block
+                </button>
+            </div>
+        </div>
+        <div v-else-if="dialogType === 'deleteChat'"
+            class="w-[500px] h-[215px] pt-6 pl-6 bg-white z-[501] custom-shadow-inset flex flex-col select-none">
+            <h1 class="text-[20px] font-normal mb-4">Delete this chat?</h1>
+            <span class="text-[14px] font-normal mb-4 text-gray-500">Chat will be completely deleted from our
+                database
+                and you cant backup it again ever</span>
+            <div class="w-full flex flex-row gap-x-4 mt-auto mb-6">
+                <button class="cursor-pointer hover:shadow-2xs rounded-3xl w-[90px] ml-auto text-center h-[38px]
+                 bg-white text-[14px] text-[#008069] border border-gray-200">
+                    Cancel
+                </button>
+                <button class="cursor-pointer rounded-3xl w-[110px] mr-8 text-center border-none h-[38px] bg-[#008069]
+                 text-white border text-[14px] border-gray-300">
+                    Delete chat
+                </button>
+            </div>
+        </div>
+        <div v-else-if="dialogType === 'muteNotifications'"
+            class="w-[500px] h-[215px] pt-6 pl-6 bg-white z-[501] custom-shadow-inset flex flex-col select-none">
+            <h1 class="text-[20px] font-normal mb-4">Mute notifications</h1>
+            <span class="text-[14px] font-normal mb-4 text-gray-500">No one else in this chat will see that you
+                muted
+                it, and you will still be notified if you are mentioned.</span>
+            <div class="w-full flex flex-row gap-x-4 mt-auto mb-6">
+                <button class="cursor-pointer hover:shadow-2xs rounded-3xl w-[90px] ml-auto text-center h-[38px]
+                 bg-white text-[14px] text-[#008069] border border-gray-200">
+                    Cancel
+                </button>
+                <button class="cursor-pointer rounded-3xl w-[83px] mr-8 text-center border-none h-[38px] bg-[#008069]
+                 text-white border text-[14px] border-gray-300">
+                    Mute
+                </button>
+            </div>
+        </div>
+    </div>
+    <div v-if="!isSearchModeOn"
+        class="flex flex-row w-full h-[64px] bg-[#f0f2f5] justify-start items-center pl-4 top-0 sticky">
         <img class="w-10 h-10 rounded-full" src="../../barcelona-logo.jpg" alt="">
         <div class="flex flex-col ml-2">
             <p class="text-[16px] font-normal">Friend...</p>
             <span class="text-[13px] font-normal text-gray-500">Last seen on ...</span>
         </div>
-        <div class="flex flex-row ml-auto mr-6 gap-x-3">
-            <button class="flex justify-center items-center w-10 h-10 rounded-full cursor-pointer">
+        <div class="flex flex-row ml-auto mr-6 relative gap-x-3">
+            <button @click="toggleSearchMode"
+                class="flex justify-center items-center w-10 h-10 rounded-full cursor-pointer">
                 <span aria-hidden="true" data-icon="search-alt" class=""><svg viewBox="0 0 24 24" height="24" width="24"
                         preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px"
                         enable-background="new 0 0 24 24">
@@ -30,7 +129,8 @@ const toggleChatOptions = (chatId: Number) => {
                         </path>
                     </svg></span>
             </button>
-            <button class="flex justify-center items-center w-10 h-10 rounded-full cursor-pointer">
+            <button @click="toggleChatOption"
+                class="flex justify-center items-center w-10 h-10 rounded-full cursor-pointer">
                 <span aria-hidden="true" data-icon="menu" class="xr9ek0c"><svg viewBox="0 0 24 24" height="24"
                         width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1" x="0px" y="0px"
                         enable-background="new 0 0 24 24">
@@ -40,6 +140,51 @@ const toggleChatOptions = (chatId: Number) => {
                         </path>
                     </svg></span>
             </button>
+            <div v-if="isChatOptionOpen" class="absolute top-10 right-0 w-[192px] h-auto py-4 flex flex-col
+             bg-white z-[50] custom-shadow-inset">
+                <div class="cursor-pointer flex items-center pl-6 w-full h-[40px] hover:bg-[#f5f6f6]">
+                    <span>Select messages</span>
+                </div>
+                <div class="cursor-pointer flex items-center pl-6 w-full h-[40px] hover:bg-[#f5f6f6]">
+                    <span>Mute notifiations</span>
+                </div>
+                <div class="cursor-pointer flex items-center pl-6 w-full h-[40px] hover:bg-[#f5f6f6]">
+                    <span>Close chat</span>
+                </div>
+                <div class="cursor-pointer flex items-center pl-6 w-full h-[40px] hover:bg-[#f5f6f6]">
+                    <span>Clear Chat</span>
+                </div>
+                <div class="cursor-pointer flex items-center pl-6 w-full h-[40px] hover:bg-[#f5f6f6]">
+                    <span>Delete Chat</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div v-else class="z-50 flex flex-row w-full h-[64px] bg-[#f0f2f5] justify-start items-center pl-6 top-0 sticky">
+        <button @click="toggleSearchMode" class="w-[24px] h-[24px] mr-4 cursor-pointer">
+            <img class="w-[18px] h-[18px]" :src="arrowLeftIcon" alt="">
+        </button>
+        <input v-model="searchText" class="w-[90%] h-[30px] outline-none text-[16px] font-normal" type="text"
+            placeholder="Search messages...">
+        <button v-if="searchText.length >= 1" @click="closeSearchBar" class="w-[24px] h-[24px] cursor-pointer mx-4">
+            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1"
+                x="0px" y="0px" enable-background="new 0 0 24 24">
+                <title>x-alt</title>
+                <path fill="currentColor"
+                    d="M17.25,7.8L16.2,6.75l-4.2,4.2l-4.2-4.2L6.75,7.8l4.2,4.2l-4.2,4.2l1.05,1.05l4.2-4.2l4.2,4.2l1.05-1.05 l-4.2-4.2L17.25,7.8z">
+                </path>
+            </svg>
+        </button>
+        <div class="w-full max-h-[330px] overflow-y-auto h-auto bg-white absolute top-13 left-0 z-50"
+            style="scrollbar-width: thin;">
+            <div class="w-full border-t border-t-gray-200 h-[55px] pl-4 hover:bg-[#f5f5f5] flex
+             items-center cursor-pointer">
+                <p class="text-[16px] font-normal">hey babe</p>
+            </div>
+            <div class="w-full border-t border-t-gray-200 h-[55px] pl-4 hover:bg-[#f5f5f5] flex
+             items-center cursor-pointer">
+                <p class="text-[16px] font-normal">hey babe</p>
+            </div>
         </div>
     </div>
     <div class="w-full h-full gap-y-2 px-16 py-12 flex flex-col"
@@ -55,7 +200,7 @@ const toggleChatOptions = (chatId: Number) => {
                     <button class="flex cursor-pointer justify-center mb-2 ml-auto items-center w-[20px] h-[20px]">
                         <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
                     </button>
-                    <div class="absolute top-4 left-[70px] w-[192px] custom-shadow-inset bg-white z-50 h-auto py-3
+                    <div class="absolute top-4 left-[70px] w-[192px] custom-shadow-inset bg-white z-30 h-auto py-3
                      flex flex-col">
                         <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
                             <span>Reply</span>
