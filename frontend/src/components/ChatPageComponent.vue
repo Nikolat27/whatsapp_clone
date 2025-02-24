@@ -3,6 +3,7 @@ import { ref, reactive, onMounted } from "vue";
 import type { Ref, Reactive } from "vue";
 import arrowLeftIcon from '../assets/icons/svg-icons/arrow-left-green.svg'
 import { useToast } from "vue-toastification";
+import EmojiPicker from 'vue3-emoji-picker'
 
 const toast = useToast();
 
@@ -58,6 +59,7 @@ const toggleSearchMode = () => {
     isSearchModeOn.value = !isSearchModeOn.value
 }
 
+
 const closeSearchBar = () => {
     isChatOptionOpen.value = false
     searchText.value = ''
@@ -91,6 +93,49 @@ const handleKeyDown = (event: any) => {
         createNewMessage(messageText.value)
     }
 }
+
+const copyText = (messageText: string) => {
+    navigator.clipboard.writeText(messageText)
+    toast.info("Message copied to your clipboard")
+    openChatMessageOptions.pop()
+}
+
+const editModeEnable: Ref<boolean> = ref(false)
+const editMessageText: Ref<string> = ref(null)
+const editMessageId: Ref<number> = ref(null)
+const editText = (messageText: string, messageId: number) => {
+    editMessageText.value = messageText
+    editMessageId.value = messageId
+    editModeEnable.value = !editModeEnable.value
+    openChatMessageOptions.pop()
+}
+
+const submitEditMessage = (messageText: string) => {
+    editMessageText.value = messageText
+    if (editMessageText.value.length < 1) {
+        toast.error("You must enter at least 1 word (or Delete it)")
+        return;
+    }
+    // API endpoint...
+
+    // End endpoint.    
+    editModeEnable.value = false
+    editMessageText.value = null
+
+    toast.success("Messaged edited successfully")
+}
+
+const deleteMessage = (messageId: number) => {
+    toast.success("Message deleted successfully!")
+    openChatMessageOptions.pop()
+}
+
+const isEmojiPickerOpen: Ref<boolean> = ref(false)
+const toggleEmojiPicker = () => { isEmojiPickerOpen.value = !isEmojiPickerOpen.value }
+function onSelectEmoji(emoji: any) {
+    messageText.value += emoji.i;
+}
+
 
 onMounted(() => {
     createFakeMessages()
@@ -199,7 +244,7 @@ onMounted(() => {
                     </svg></span>
             </button>
             <div v-if="isChatOptionOpen" class="absolute top-10 right-0 w-[192px] h-auto py-4 flex flex-col
-             bg-white z-[50] custom-shadow-inset">
+             bg-white z-50 custom-shadow-inset">
                 <div class="cursor-pointer flex items-center pl-6 w-full h-[40px] hover:bg-[#f5f6f6]">
                     <span>Select messages</span>
                 </div>
@@ -249,8 +294,8 @@ onMounted(() => {
         style="background-image: url('../../whatsapp_default_background.jpg'); scrollbar-width: thin;">
         <div v-for="message in messages" :key="message.id" :class="[message.from_user === 1 ? 'justify-end' : '']"
             class="message-out w-full h-auto flex mb-[1px]">
-            <div :class="[message.from_user === 1 ? 'bg-[#d9fdd3]' : 'bg-white']" class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal
-             px-2 h-full min-h-full rounded-2xl items-center">
+            <div :class="[message.from_user === 1 ? 'bg-[#d9fdd3]' : 'bg-white']" class="custom-shadow-inset2 pt-1 pb-2
+             flex flex-col flex-wrap max-w-[603px] w-auto font-normal px-2 h-full min-h-full rounded-2xl items-center">
                 <p class="user-text text-[14.2px] flex-wrap">
                     {{ message.text }}
                 </p>
@@ -260,21 +305,25 @@ onMounted(() => {
                      mb-2 ml-auto items-center w-[20px] h-[20px]">
                         <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
                     </button>
-                    <div v-if="openChatMessageOptions.includes(message.id)" class="z-30 absolute top-4 left-[74px] w-[192px] custom-shadow-inset bg-white h-auto py-3
-                     flex flex-col">
+                    <div v-if="openChatMessageOptions.includes(message.id)"
+                        :class="[message.from_user === 1 ? 'right-[20px]' : 'left-[74px]']" class="absolute top-4 w-[192px]
+                     custom-shadow-inset bg-white h-auto py-3 flex flex-col z-50">
                         <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
                             <span>Reply</span>
                         </div>
-                        <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
+                        <div @click="editText(message.text, message.id)"
+                            class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
                             <span>Edit</span>
                         </div>
-                        <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
+                        <div @click="deleteMessage(message.id)"
+                            class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
                             <span>Delete</span>
                         </div>
                         <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
                             <span>Forward</span>
                         </div>
-                        <div class="w-full h-[40px] cursor-pointer  hover:bg-[#f5f6f6] pl-6 flex items-center">
+                        <div @click="copyText(message.text)"
+                            class="w-full h-[40px] cursor-pointer  hover:bg-[#f5f6f6] pl-6 flex items-center">
                             <span>Copy</span>
                         </div>
                     </div>
@@ -289,8 +338,11 @@ onMounted(() => {
                 <path fill="currentColor" d="M19,13h-6v6h-2v-6H5v-2h6V5h2v6h6V13z"></path>
             </svg>
         </button>
-        <div class="flex flex-row bg-white w-[920px] min-h-[44px] h-auto items-center rounded-lg">
-            <button class="w-[24px] h-[24px] mx-2 cursor-pointer">
+        <div v-if="!editModeEnable"
+            class="relative flex flex-row bg-white w-[920px] min-h-[44px] h-auto items-center rounded-lg">
+            <EmojiPicker v-if="isEmojiPickerOpen" class="absolute bottom-14 left-0" :native="true"
+                @select="onSelectEmoji" />
+            <button @click="toggleEmojiPicker" class="w-[24px] h-[24px] mx-2 cursor-pointer">
                 <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class=""
                     fill="none">
                     <title>expressions</title>
@@ -307,6 +359,15 @@ onMounted(() => {
             </button>
             <input v-model="messageText" class="outline-none border-none w-full pr-2 user-text placeholder:pr-2"
                 placeholder="Type a message" type="text">
+        </div>
+        <div v-else :class="[editMessageText.length < 1 ? 'border-2 border-red-700' : '']"
+            class="flex flex-row bg-white w-[920px] min-h-[44px] h-auto items-center rounded-lg">
+            <input v-model="editMessageText" class="outline-none border-none w-full pl-2 user-text placeholder:pr-2"
+                placeholder="Edit" type="text">
+            <button @click="submitEditMessage(editMessageText)"
+                class="cursor-pointer w-20 h-8 rounded-3xl bg-green-700 text-white text-[16px] font-semibold mr-4">
+                Edit
+            </button>
         </div>
         <button class="w-[24px] h-[24px] mx-4 cursor-pointer">
             <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1"
