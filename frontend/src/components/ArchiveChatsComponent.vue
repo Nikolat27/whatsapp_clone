@@ -18,7 +18,7 @@ const closeArchiveChats = () => {
     </div>
     <div class="select-none flex flex-col w-full">
         <div class="flex border-b border-gray-200 flex-row w-full h-[72px] cursor-pointer
-                justify-start items-center hover:bg-[#f5f6f6] pl-3">
+         justify-start items-center hover:bg-[#f5f6f6] pl-3">
             <img class="w-[49px] h-[49px] rounded-full object-cover" src="../../barcelona-logo.jpg" alt="">
             <div class="flex flex-col ml-4 w-full">
                 <div class="flex flex-row w-full">

@@ -30,7 +30,7 @@ const handleStatusFileUpload = (event: any) => {
 
 <template>
     <TextStatusCreationComponent v-if="isTextStatusCreationOpen"></TextStatusCreationComponent>
-    <UserStatusDetailComponent v-if="true"></UserStatusDetailComponent>
+    <UserStatusDetailComponent v-if="false"></UserStatusDetailComponent>
     <div class="flex flex-row w-full pt-4 pl-4 select-none">
         <h1 class="text-[22px] font-bold">Status</h1>
         <div class="relative flex flex-row gap-x-2 ml-auto mr-2">
@@ -78,7 +78,7 @@ const handleStatusFileUpload = (event: any) => {
             <img class="w-full h-full" src="../../barcelona-logo.jpg" alt="">
             <button class="relative ml-2 top-[20px] right-5 w-[21px] h-[21px] rounded-full flex
                 justify-center items-center bg-green-600">
-                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 24 24"
+                <svg xmlns="http://www.w3.org/2000/svg" class="text-white" x="0px" y="0px" width="100" height="100" viewBox="0 0 24 24"
                     style="fill:#FFFFFF;">
                     <path
                         d="M 12 2 C 6.4860328 2 2 6.4860368 2 12 C 2 17.513963 6.4860328 22 12 22 C 17.513967 22 22 17.513963 22 12 C 22 6.4860368 17.513967 2 12 2 z M 12 3.5 C 16.703308 3.5 20.5 7.2966955 20.5 12 C 20.5 16.703304 16.703308 20.5 12 20.5 C 7.2966924 20.5 3.5 16.703304 3.5 12 C 3.5 7.2966955 7.2966924 3.5 12 3.5 z M 11.988281 6.9902344 A 0.750075 0.750075 0 0 0 11.25 7.75 L 11.25 11.25 L 7.75 11.25 A 0.750075 0.750075 0 1 0 7.75 12.75 L 11.25 12.75 L 11.25 16.25 A 0.750075 0.750075 0 1 0 12.75 16.25 L 12.75 12.75 L 16.25 12.75 A 0.750075 0.750075 0 1 0 16.25 11.25 L 12.75 11.25 L 12.75 7.75 A 0.750075 0.750075 0 0 0 11.988281 6.9902344 z">
