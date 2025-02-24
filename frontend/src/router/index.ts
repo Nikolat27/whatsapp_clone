@@ -1,10 +1,16 @@
 import { createWebHistory, createRouter } from 'vue-router'
 
 import ChatsView from '../views/ChatsView.vue'
+import StatusView from '../views/StatusView.vue'
 
 const routes: any = [
-  { path: "/",
+  {
+    path: "/",
     component: ChatsView
+  },
+  {
+    path: "/status",
+    component: StatusView
   }
 ]
 
