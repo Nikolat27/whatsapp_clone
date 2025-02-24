@@ -3,12 +3,12 @@ import { ref, watch, reactive, Reactive } from 'vue'
 import type { Ref } from 'vue';
 import ClipLoader from 'vue-spinner/src/ClipLoader.vue'
 import sharedState from '../sharedState';
-
 import ArchiveChatsComponent from '/src/components/ArchiveChatsComponent.vue';
 import NewChatPageComponent from '/src/components/NewChatComponent.vue';
 
 // Icons
 import arrowLeftIcon from '/src/assets/icons/svg-icons/arrow-left-green.svg'
+
 
 const isChatOptionsDivOpen: Ref<Boolean> = ref(false)
 const toggleChatOptionsDiv = () => {
@@ -44,8 +44,8 @@ watch(() => sharedState.isArchiveChatOpen, (newVal) => {
     isArchiveChatOpen.value = newVal
 })
 
-const openChatOptions = reactive([])
-const toggleChatOptions = (chatId: Number) => {
+const openChatOptions: Reactive<any> = reactive([])
+const toggleChatOptions = (chatId: number) => {
     if (openChatOptions.includes(chatId)) {
         openChatOptions.pop()
     } else {

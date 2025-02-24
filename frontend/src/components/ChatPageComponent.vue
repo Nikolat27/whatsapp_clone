@@ -1,13 +1,39 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import type { Ref, Reactive } from "vue";
-import arrowLeftIcon from '/src/assets/icons/svg-icons/arrow-left-green.svg'
+import arrowLeftIcon from '../assets/icons/svg-icons/arrow-left-green.svg'
+import { useToast } from "vue-toastification";
+
+const toast = useToast();
 
 const isChatOptionOpen = ref(false)
 const toggleChatOption = () => {
     isChatOptionOpen.value = !isChatOptionOpen.value
 }
 
+function getRandomNumber() {
+    return Math.random() > 0.5 ? 1 : 2
+}
+
+function getCurrentTime() {
+    return new Date()
+}
+
+const messages: Reactive<any> = reactive([])
+const createFakeMessages = () => {
+    for (let i = 1; i <= 5; i++) {
+        let randomNumber = getRandomNumber();
+        let from_user = randomNumber
+        let to_user = from_user === 1 ? 2 : 1
+        messages.push({
+            id: i,
+            text: `Hi ${i}`,
+            from_user: from_user,
+            to_user: to_user,
+            created_at: '3:50PM',
+        })
+    }
+}
 
 const openChatMessageOptions: Reactive<any> = reactive([])
 const toggleChatMessageOptions = (chatId: Number) => {
@@ -19,8 +45,7 @@ const toggleChatMessageOptions = (chatId: Number) => {
     }
 }
 
-
-const dialogType: Ref<String> = ref(null)
+const dialogType: Ref<String | null> = ref(null)
 const handleLayerClick = (event: Event) => {
     if (event.target === event.currentTarget) {
         console.log('hi')
@@ -38,6 +63,39 @@ const closeSearchBar = () => {
     searchText.value = ''
     isSearchModeOn.value = false
 }
+
+const messageText: Ref<String> = ref('')
+const createNewMessage = (text: String) => {
+    let currentTime = getCurrentTime()
+    let from_user = 1
+    let to_user = 2
+    let id = messages.length + 1
+
+    messages.push({
+        id: id,
+        text: text,
+        from_user: from_user,
+        to_user: to_user,
+        created_at: currentTime,
+    })
+
+    messageText.value = ''
+}
+
+const handleKeyDown = (event: any) => {
+    if (event.key === 'Enter') {
+        if (messageText.value.length < 1) {
+            toast.info("You must enter at least 1 word")
+            return;
+        }
+        createNewMessage(messageText.value)
+    }
+}
+
+onMounted(() => {
+    createFakeMessages()
+    window.addEventListener("keydown", handleKeyDown)
+})
 </script>
 <template>
     <div @click="handleLayerClick" v-if="dialogType"
@@ -187,20 +245,22 @@ const closeSearchBar = () => {
             </div>
         </div>
     </div>
-    <div class="w-full h-full gap-y-2 px-16 py-12 flex flex-col"
-        style="background-image: url('../../whatsapp_default_background.jpg');">
-        <div class="message-out w-full h-auto min-h-[33px] flex mb-[1px]">
-            <div class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal
-             bg-[#d9fdd3] px-2 h-full rounded-2xl items-center">
+    <div class="w-full h-full max-h-[754px] overflow-y-auto overflow-x-hidden gap-y-2 px-16 py-12 flex flex-col"
+        style="background-image: url('../../whatsapp_default_background.jpg'); scrollbar-width: thin;">
+        <div v-for="message in messages" :key="message.id" :class="[message.from_user === 1 ? 'justify-end' : '']"
+            class="message-out w-full h-auto flex mb-[1px]">
+            <div :class="[message.from_user === 1 ? 'bg-[#d9fdd3]' : 'bg-white']" class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal
+             px-2 h-full min-h-full rounded-2xl items-center">
                 <p class="user-text text-[14.2px] flex-wrap">
-                    asdfasdf
+                    {{ message.text }}
                 </p>
-                <div class="relative w-full h-2 flex flex-row items-center mt-2">
+                <div class="relative w-full min-h-2 h-2 flex flex-row items-center mt-2">
                     <span class="text-[11px] mr-1 self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
-                    <button class="flex cursor-pointer justify-center mb-2 ml-auto items-center w-[20px] h-[20px]">
+                    <button @click="toggleChatMessageOptions(message.id)" class="flex cursor-pointer justify-center
+                     mb-2 ml-auto items-center w-[20px] h-[20px]">
                         <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
                     </button>
-                    <div class="absolute top-4 left-[70px] w-[192px] custom-shadow-inset bg-white z-30 h-auto py-3
+                    <div v-if="openChatMessageOptions.includes(message.id)" class="z-30 absolute top-4 left-[74px] w-[192px] custom-shadow-inset bg-white h-auto py-3
                      flex flex-col">
                         <div class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center">
                             <span>Reply</span>
@@ -218,34 +278,6 @@ const closeSearchBar = () => {
                             <span>Copy</span>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="message-out w-full h-auto min-h-[33px] flex mb-[1px]">
-            <div class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal
-             bg-[#d9fdd3] px-2 h-full rounded-2xl items-center">
-                <p class="user-text text-[14.2px] flex-wrap">
-                    asdfasdf
-                </p>
-                <div class="w-full h-2 flex flex-row items-center mt-2">
-                    <span class="text-[11px] mr-1 self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
-                    <button class="flex cursor-pointer justify-center mb-2 ml-auto items-center w-[20px] h-[20px]">
-                        <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="message-out flex justify-self-end justify-end w-full h-auto min-h-[33px] mb-[1px]">
-            <div class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal
-             bg-white px-2 h-full rounded-2xl items-center">
-                <p class="user-text text-[14.2px] flex-wrap">
-                    asdfasdf
-                </p>
-                <div class="w-full h-2 flex flex-row items-center mt-2">
-                    <span class="text-[11px] mr-1 self-end font-normal text-gray-600 flex ml-2">3.19 PM</span>
-                    <button class="flex cursor-pointer justify-center mb-2 ml-auto items-center w-[20px] h-[20px]">
-                        <img draggable="false" class="w-full h-full" src="../../arrow-down-icon.svg" alt="">
-                    </button>
                 </div>
             </div>
         </div>
@@ -273,8 +305,8 @@ const closeSearchBar = () => {
                         fill="currentColor"></path>
                 </svg>
             </button>
-            <input class="outline-none border-none w-full pr-2 user-text placeholder:pr-2" placeholder="Type a message"
-                type="text">
+            <input v-model="messageText" class="outline-none border-none w-full pr-2 user-text placeholder:pr-2"
+                placeholder="Type a message" type="text">
         </div>
         <button class="w-[24px] h-[24px] mx-4 cursor-pointer">
             <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" version="1.1"
