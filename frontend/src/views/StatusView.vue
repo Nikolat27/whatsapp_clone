@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import sharedState from '../sharedState';
 import TextStatusCreationComponent from '../components/TextStatusCreationComponent.vue';
+import UserStatusDetailComponent from '../components/UserStatusDetailComponent.vue';
 
 const isStatusCreatingDivOpen: Ref<boolean> = ref(false)
 const toggleStatusCreationDiv = () => {
@@ -29,6 +30,7 @@ const handleStatusFileUpload = (event: any) => {
 
 <template>
     <TextStatusCreationComponent v-if="isTextStatusCreationOpen"></TextStatusCreationComponent>
+    <UserStatusDetailComponent v-if="true"></UserStatusDetailComponent>
     <div class="flex flex-row w-full pt-4 pl-4 select-none">
         <h1 class="text-[22px] font-bold">Status</h1>
         <div class="relative flex flex-row gap-x-2 ml-auto mr-2">
