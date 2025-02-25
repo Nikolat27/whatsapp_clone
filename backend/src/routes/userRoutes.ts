@@ -1,11 +1,15 @@
-import { Router, Request, Response } from "express";
-import connectDB from "../database/database";
-import User from "../database/models/User";
+import { App, Request, Response } from "@tinyhttp/app";
+import memjs from "memjs";
 
-const router = Router();
+const memcached = memjs.Client.create("127.0.0.1:11211");
 
-router.get("/", (req: Request, res: Response) => {
-    res.send("hi")
-})
+const router = new App();
 
-export default router
+router.get("/login", async (req: Request, res: Response) => {
+    await memcached.set("username", "password");
+
+        
+
+});
+
+export default router;

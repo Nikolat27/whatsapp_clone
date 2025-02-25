@@ -1,11 +1,9 @@
-import express from "express";
-import userRoutes from "./routes/userRoutes";
+import { App, Request, Response } from "@tinyhttp/app";
+import userRoutes from './routes/userRoutes'
 
-const app = express();
+const app = new App();
 const port = 8000;
 
-app.listen(port, "api.localhost", () => {
-    console.log("Server started successfully!");
-});
+app.use("/users", userRoutes)
 
-app.use("/users", userRoutes);
+app.listen(port);
