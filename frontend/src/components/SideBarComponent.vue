@@ -5,8 +5,8 @@
     <router-link to="/">
         <button :class="$route.name === 'home' ? 'active' : ''"
             class="w-[40px] h-[40px] rounded-full flex justify-center items-center cursor-pointer">
-            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" :class="$route.name === 'home' ? 'text-[#54656f]' : ''"
-                fill="none">
+            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet"
+                :class="$route.name === 'home' ? 'text-[#54656f]' : ''" fill="none">
                 <title>chats-filled</title>
                 <path fill-rule="evenodd" clip-rule="evenodd"
                     d="M4.8384 8.45501L5 8.70356V9V17.8333C5 18.7538 5.7462 19.5 6.6667 19.5H20.3333C21.2538 19.5 22 18.7538 22 17.8333V6.66667C22 5.74619 21.2538 5 20.3333 5H2.5927L4.8384 8.45501ZM8 14.5C8 13.6716 8.67157 13 9.5 13H14.5C15.3284 13 16 13.6716 16 14.5C16 15.3284 15.3284 16 14.5 16H9.5C8.67157 16 8 15.3284 8 14.5ZM9.5 8C8.67157 8 8 8.67157 8 9.5C8 10.3284 8.67157 11 9.5 11H16.5C17.3284 11 18 10.3284 18 9.5C18 8.67157 17.3284 8 16.5 8H9.5Z"
@@ -20,7 +20,8 @@
     <router-link to="/status">
         <button :class="$route.name === 'status' ? 'active' : ''"
             class="w-[40px] h-[40px] rounded-full flex justify-center items-center cursor-pointer">
-            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" fill="none" :class="$route.name === 'status' ? 'text-[#54656f]' : ''">
+            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" fill="none"
+                :class="$route.name === 'status' ? 'text-[#54656f]' : ''">
                 <title>status</title>
                 <circle cx="12" cy="12" r="6" fill="currentColor"></circle>
                 <path fill-rule="evenodd" clip-rule="evenodd"
@@ -32,7 +33,8 @@
     <router-link to="/channels">
         <button :class="$route.name === 'channels' ? 'active' : ''"
             class="w-[40px] h-[40px] rounded-full flex justify-center items-center cursor-pointer">
-            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" fill="none" :class="$route.name === 'channels' ? 'text-[#54656f]' : ''">
+            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" fill="none"
+                :class="$route.name === 'channels' ? 'text-[#54656f]' : ''">
                 <title>newsletter-tab</title>
                 <path
                     d="M21.9218 10.6469C21.321 6.08949 17.5557 2.45561 12.9894 2.04404C7.06124 1.50197 2.16447 6.05937 2.05432 11.982C2.01426 14.1101 2.82538 15.9371 3.23595 16.7201L2.0443 20.6651C1.81398 21.4281 2.52497 22.1408 3.28602 21.9099L7.17139 20.7455C8.65344 21.5686 10.3157 22.0002 12.0181 22.0002C17.9663 22.0002 22.7129 16.7602 21.9118 10.6469H21.9218ZM8.06262 14.6823C8.333 15.0838 8.30296 15.6259 7.96249 15.9672C7.51186 16.429 6.76082 16.3386 6.40033 15.7966C5.66931 14.7124 5.23872 13.3974 5.23872 11.992C5.23872 10.5867 5.69936 9.17125 6.49045 8.057C6.84093 7.56512 7.57195 7.53501 8.00254 7.96665C8.35302 8.318 8.38307 8.86007 8.10268 9.2616C7.56193 10.0346 7.2515 10.9782 7.2515 11.992C7.2515 13.0059 7.56193 13.9093 8.08265 14.6723L8.06262 14.6823ZM12.0682 13.4978C11.237 13.4978 10.5661 12.8252 10.5661 11.992C10.5661 11.1588 11.237 10.4863 12.0682 10.4863C12.8993 10.4863 13.5702 11.1588 13.5702 11.992C13.5702 12.8252 12.8993 13.4978 12.0682 13.4978ZM17.5257 15.9471C17.1752 16.439 16.4442 16.4691 16.0236 16.0375C15.6731 15.6861 15.6431 15.1441 15.9235 14.7425C16.4642 13.9696 16.7847 13.0159 16.7847 12.0021C16.7847 10.9882 16.4542 10.0145 15.9035 9.24152C15.6131 8.82995 15.6331 8.27784 15.9836 7.91646C16.4042 7.49485 17.1252 7.51493 17.4857 8.00681C18.3068 9.1311 18.7875 10.5064 18.7875 12.0121C18.7875 13.5179 18.3168 14.8429 17.5257 15.9572V15.9471Z"
@@ -44,8 +46,8 @@
         <router-link to="/setting">
             <button :class="$route.name === 'setting' ? 'active' : ''"
                 class="w-[40px] h-[40px] rounded-full flex justify-center items-center cursor-pointer">
-                <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" :class="$route.name === 'setting' ? 'text-[#54656f]' : ''"
-                    fill="none">
+                <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet"
+                    :class="$route.name === 'setting' ? 'text-[#54656f]' : ''" fill="none">
                     <title>settings</title>
                     <path fill-rule="evenodd" clip-rule="evenodd"
                         d="M19.261 12C19.261 12.34 19.2309 12.66 19.1908 12.98L21.3047 14.63C21.4951 14.78 21.5452 15.05 21.425 15.27L19.4213 18.73C19.301 18.95 19.0406 19.04 18.8101 18.95L16.3155 17.95C15.7946 18.34 15.2335 18.68 14.6224 18.93L14.2417 21.58C14.2117 21.82 14.0013 22 13.7508 22H9.74342C9.49296 22 9.28257 21.82 9.25252 21.58L8.87181 18.93C8.26069 18.68 7.69965 18.35 7.17869 17.95L4.68409 18.95C4.46368 19.03 4.19319 18.95 4.07296 18.73L2.06927 15.27C2.01044 15.1663 1.99024 15.0452 2.01224 14.9281C2.03424 14.811 2.09702 14.7054 2.18949 14.63L4.30339 12.98C4.25974 12.6551 4.23632 12.3278 4.23326 12C4.23326 11.67 4.26331 11.34 4.30339 11.02L2.18949 9.37C2.09494 9.29613 2.03059 9.19042 2.00846 9.07263C1.98633 8.95484 2.00795 8.83304 2.06927 8.73L4.07296 5.27C4.19319 5.05 4.45367 4.96 4.68409 5.05L7.17869 6.05C7.69965 5.66 8.26069 5.32 8.87181 5.07L9.25252 2.42C9.28257 2.18 9.49296 2 9.74342 2H13.7508C14.0013 2 14.2117 2.18 14.2417 2.42L14.6224 5.07C15.2335 5.32 15.7946 5.65 16.3155 6.05L18.8101 5.05C19.0305 4.97 19.301 5.05 19.4213 5.27L21.425 8.73C21.5452 8.95 21.4951 9.22 21.3047 9.37L19.1908 11.02C19.2309 11.34 19.261 11.66 19.261 12ZM8.24065 12C8.24065 13.93 9.81355 15.5 11.7471 15.5C13.6807 15.5 15.2536 13.93 15.2536 12C15.2536 10.07 13.6807 8.5 11.7471 8.5C9.81355 8.5 8.24065 10.07 8.24065 12Z"
