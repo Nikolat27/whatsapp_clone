@@ -2,6 +2,8 @@ import { App, Request, Response } from "@tinyhttp/app";
 import bcrypt from "bcrypt";
 import User from "../database/models/User";
 import memjs from "memjs";
+import fs from "fs";
+import path from "path";
 
 const memcached = memjs.Client.create("127.0.0.1:11211");
 const router = new App();
@@ -89,6 +91,7 @@ router.post("/register", async (req: Request, res: Response) => {
         return;
     }
     await createUser(email, username, hashedPassword);
+
     res.send("User added successfully!");
 });
 
@@ -128,6 +131,12 @@ router.delete("/logout", async (req: Request, res: Response) => {
 
     await memcached.delete(userSessionId);
     return res.status(200).send("User loged out successfully!");
+});
+
+router.put("/update-profile", async (req: Request, res: Response) => {
+    const { profilePicture } = req.body;
+    console.log(profilePicture);
+    return;
 });
 
 export default router;

@@ -1,15 +1,34 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Ref } from 'vue';
+import sharedState from '../sharedState';
+import axios from 'axios';
 
 const fileInputRef = ref(null)
 const userProfileFile: Ref = ref(null)
 const temporaryProfileImage: Ref<string> = ref(null)
-const uploadUserProfilePiture = (event: any) => {
+const uploadUserProfilePicture = (event: any) => {
+    const confirm = window.confirm("Change your profile picture?")
+    if (!confirm) return;
+
     userProfileFile.value = event.target.files[0]
     temporaryProfileImage.value = URL.createObjectURL(userProfileFile.value);
-    // API Endpoint here...
+
+    const formData = new FormData();
+    console.log(userProfileFile.value)
+    formData.append("profilePicture", userProfileFile.value)
+
+    axios.put(`${sharedState.backendUrl}/users/update-profile`, formData, {
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then((response) => {
+        if (response.status === 202) {
+            console.log(response)
+        }
+    }).catch((error) => console.error(error.response.error))
 }
+
 
 const editNameText: Ref<string> = ref('Sam')
 const isEditNameModeOn: Ref<boolean> = ref(false)
@@ -34,17 +53,23 @@ const toggleEditAboutMode = () => {
     }
 }
 
+const closeUserEditPage = () => {
+    sharedState.isUserEditOpen = false
+}
 </script>
 
 <template>
     <div class="w-full h-[64px] pl-3 bg-white flex justify-start items-center">
+        <span @click="closeUserEditPage"
+            class="text-[15px] font-medium mr-4 cursor-pointer underline underline-offset-3">get Back</span>
         <h1 class="text-[22px] font-bold">Profile</h1>
     </div>
     <div class="w-full h-auto min-h-[200px] flex justify-center items-center mb-8 bg-[#f0f2f5] py-8">
-        <input accept="image/png, image/jpeg, image/jpg" ref="fileInputRef" @change="uploadUserProfilePiture"
+        <input accept="image/png, image/jpeg, image/jpg" ref="fileInputRef" @change="uploadUserProfilePicture"
             type="file" class="hidden">
         <div @click="fileInputRef.click()" class="w-[200px] h-[200px] cursor-pointer">
-            <img draggable="false" class="w-full h-full rounded-full object-cover" :src="temporaryProfileImage ? temporaryProfileImage : '../../barcelona-logo.jpg'" alt="">
+            <img draggable="false" class="w-full h-full rounded-full object-cover"
+                :src="temporaryProfileImage ? temporaryProfileImage : '../../barcelona-logo.jpg'" alt="">
         </div>
     </div>
     <div class="flex flex-col h-[90px] w-full gap-y-4 pl-6 bg-white justify-start items-start">

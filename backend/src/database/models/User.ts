@@ -4,6 +4,7 @@ interface IUser extends Document {
     email: string;
     username: string;
     password: string;
+    profilePicture: string;
     aboutMe?: string; // Optional
     createdAt: Date;
 }
@@ -12,6 +13,7 @@ const UserSchema = new Schema<IUser>({
     email: { type: String, required: true, unique: true },
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    profilePicture: { type: String },
     aboutMe: { type: String, default: "" },
     createdAt: { type: Date, default: Date.now },
 });

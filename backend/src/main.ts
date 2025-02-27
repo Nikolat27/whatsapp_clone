@@ -6,7 +6,6 @@ import connectDB from "./database/database";
 
 const app = new App();
 const port = 8000;
-
 app.use(cors({ origin: "http://localhost:5000" }));
 app.use(json());
 app.options("*", cors());

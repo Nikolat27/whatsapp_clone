@@ -1,12 +1,26 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue';
+import { Ref } from 'vue';
+import sharedState from '../sharedState';
 import UserEditComponent from '../components/UserEditProfileComponent.vue';
+
+const isUserEditOn: Ref<boolean> = ref(false)
+const toggleUserEdit = () => {
+    sharedState.isUserEditOpen = !sharedState.isUserEditOpen
+    isUserEditOn.value = !isUserEditOn.value
+}
+
+watch(() => sharedState.isUserEditOpen, (newVal) => {
+    isUserEditOn.value = newVal
+    sharedState.isUserEditOpen = newVal
+})
 </script>
 <template>
-    <UserEditComponent v-if="true"></UserEditComponent>
+    <UserEditComponent v-if="isUserEditOn"></UserEditComponent>
     <div v-else class="flex flex-col w-full h-full">
         <h1 class="text-[22px] font-bold pl-3 pt-4">Settings</h1>
-        <div class="flex flex-row gap-x-1 ml-3 mt-6 w-[94%] h-[35px] justify-center
-         items-center bg-[#f0f2f5] rounded-lg">
+        <div class="flex flex-row gap-x-1 ml-3 mt-6 w-[94%] h-[35px] justify-center items-center
+         bg-[#f0f2f5] rounded-lg">
             <button class="w-[24px] h-[24px]">
                 <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class=""
                     version="1.1" x="0px" y="0px" enable-background="new 0 0 24 24">
@@ -19,7 +33,7 @@ import UserEditComponent from '../components/UserEditProfileComponent.vue';
             <input type="text" class="w-[90%] h-full outline-none" placeholder="Search settings..">
         </div>
 
-        <div class="flex flex-row w-full h-[98px] mt-4 pl-3 justify-start items-center gap-x-3
+        <div @click="toggleUserEdit" class="flex flex-row w-full h-[98px] mt-4 pl-3 justify-start items-center gap-x-3
             cursor-pointer hover:bg-[#f5f6f6]">
             <img class="w-[82px] h-[82px] rounded-full" src="../../barcelona-logo.jpg" alt="">
             <div class="flex flex-col items-start justify-center">
