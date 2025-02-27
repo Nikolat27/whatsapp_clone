@@ -1,5 +1,38 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import sharedState from '../sharedState';
+import axios from 'axios'
+import { useToast } from 'vue-toastification';
 
+import logoutIcon from '/src/assets/icons/svg-icons/logout-icon.svg'
+
+const toast = useToast();
+
+const submitLogout = async () => {
+    const user_session_id: string = localStorage.getItem("user_session_id")
+    if (!user_session_id) {
+        toast.error("You are already logged out")
+        return;
+    }
+    const formData = new FormData();
+    formData.append("userSessionId", user_session_id)
+    axios.delete(`${sharedState.backendUrl}/users/logout`, {
+        headers: {
+            "Content-Type": "application/json"
+        },
+        data: formData
+    }).then((response) => {
+        if (response.status === 200) {
+            localStorage.removeItem("user_session_id")
+            toast.success("User Logged out successfully!")
+        }
+    }).catch((error) => console.error(error))
+}
+
+const isUserAuthenticated = computed(() => {
+    const user_session_id = localStorage.getItem("user_session_id")
+    return user_session_id ? true : false
+})
 </script>
 <template>
     <router-link to="/">
@@ -42,6 +75,10 @@
             </svg>
         </button>
     </router-link>
+    <button v-if="isUserAuthenticated" @click="submitLogout" class="w-[40px] h-[40px] rounded-full flex justify-center
+         items-center cursor-pointer">
+        <img class="w-[22px] h-[22px]" :src="logoutIcon" alt="">
+    </button>
     <div class="flex flex-col mt-auto mb-4 gap-y-2">
         <router-link to="/setting">
             <button :class="$route.name === 'setting' ? 'active' : ''"
