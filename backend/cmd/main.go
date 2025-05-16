@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log/slog"
 	"net/http"
 	"whatsapp_clone/internal/api"
+	"whatsapp_clone/internal/data"
 	"whatsapp_clone/internal/routes"
 )
 
@@ -22,16 +24,29 @@ func main() {
 			panic(err)
 		}
 	}()
-	
-	database := client.Database("whatsapp_clone")
-	err = database.CreateCollection(context.Background(), "users")	
+
+	// Connecting mongo
+	db := client.Database("whatsapp_clone")
 	if err != nil {
 		panic(err)
 	}
-	
-	app := &api.Application{}
-	server := &http.Server{Addr: ":8000", Handler: routes.Route(app)}
 
+	// Connecting redis
+	rli, err := establishRedis("localhost:6379")
+	if err != nil {
+		panic(err)
+	}
+
+	// Creating the models objects
+	models := data.NewModels(db)
+	app := &api.Application{
+		Models: models,
+		Rli:    rli,
+	}
+
+	server := &http.Server{Addr: ":5000", Handler: routes.Route(app)}
+
+	// Starting the http server
 	err = server.ListenAndServe()
 	if err != nil {
 		panic(err)
@@ -51,9 +66,21 @@ func openDB(url string) (*mongo.Client, error) {
 		return nil, err
 	}
 
-	slog.Info("mongodb", "connected successfully")
+	slog.Info("mongodb", "result", "connected successfully")
 
 	return client, nil
 }
 
+func establishRedis(url string) (*redis.Client, error) {
+	client := redis.NewClient(&redis.Options{
+		Addr:     url,
+		Password: "",
+		DB:       0,
+	})
 
+	_, err := client.Ping().Result()
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
