@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 	"whatsapp_clone/internal/errors"
@@ -47,13 +46,24 @@ func (app *Application) RegisterUserHandler(w http.ResponseWriter, r *http.Reque
 
 func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		UserToken string `json:"userToken"`
+		Username  string `json:"username"`
+		Password  string `json:"password"`
 	}
 
 	err := helpers.DeSerializeJSON(r.Body, 10000, &input)
 	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	
+	isAuthenticated, err := helpers.IsUserAuthenticated(app.Rli, r.Header.Get("X-User-Token"))
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusInternalServerError, "Server Internal Error")
+		return
+	}
+	if isAuthenticated == true {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, "user is already logged in")
 		return
 	}
 
@@ -73,13 +83,12 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 		errors.ServerErrorResponse(w, http.StatusBadRequest, "invalid password")
 		return
 	}
-	
-	log.Println(user.Id)
-	redisKey := fmt.Sprintf("user-%s", user.Id)
-	redisValue := helpers.GenerateRandomString(10)
+
+	userToken := helpers.GenerateRandomString(10)
+	userId := fmt.Sprintf("user-%s", user.Id)
 	redisExpiration := 7 * 24 * time.Hour // 7 days
 
-	app.Rli.Set(redisKey, redisValue, redisExpiration)
+	app.Rli.Set(userToken, userId, redisExpiration)
 
-	helpers.WriteJSON(w, http.StatusOK, redisValue)
+	helpers.WriteJSON(w, http.StatusOK, userToken)
 }

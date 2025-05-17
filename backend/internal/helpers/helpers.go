@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/thanhpk/randstr"
 	"golang.org/x/crypto/bcrypt"
@@ -38,8 +37,13 @@ func GenerateRandomString(length int) string {
 	return randstr.String(length)
 }
 
-func IsUserAuthenticated(rli *redis.Client, username string) bool {
-	redisKey := fmt.Sprintf("username-%s", username)
-	val := rli.Get(redisKey)
-	return val != nil
+func IsUserAuthenticated(rli *redis.Client, userToken string) (bool, error) {
+	if userToken == "" {
+		return false, nil
+	}
+	val, err := rli.Get(userToken).Result()
+	if err != nil {
+		return false, err
+	}
+	return val != "", nil
 }

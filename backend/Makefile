@@ -10,8 +10,8 @@ github-push:
 	@echo ""
 
 register-user:
-	curl -X POST 'http://localhost:5000/users/register/' -H "Content-Type: application/json" -d '{"username": "sam", "password": "abc123"}'
+	curl -X POST 'http://localhost:5000/users/register/' -H "Content-Type: application/json" -d '{"username": "sa123123m", "password": "abc123"}'
 
 login-user:
-	curl -X POST 'http://localhost:5000/users/login/' -H "Content-Type: application/json" -d '{"username": "sam", "password": "abc123"}'
+	curl -X POST 'http://localhost:5000/users/login/' -H "Content-Type: application/json" -d '{"username": "sam", "password": "abc123", "userToken": "X6HPDdXXUf"}'
 	
