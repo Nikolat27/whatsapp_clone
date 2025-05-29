@@ -28,6 +28,33 @@ func getParticipants(participants []string) ([]primitive.ObjectID, error) {
 	return idSlice, nil
 }
 
+
+func (app *Application) ChatSocketHandler(w http.ResponseWriter, r *http.Request) {
+	chatID := r.URL.Query().Get("chat_id")
+	userID := r.URL.Query().Get("user_id")
+
+	if chatID == "" || userID == "" {
+		ServerErrorResponse(w, http.StatusBadRequest, "chat_id and user_id are both required parameters")
+		return
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		ServerErrorResponse(w, http.StatusBadRequest, "websocket upgrade failed")
+		return
+	}
+
+	app.addConnection(chatID, userID, conn)
+
+	go func() {
+		err = app.handleWebSocketConnection(conn, chatID, userID)
+		if err != nil {
+			ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+	}()
+}
+
 func (app *Application) GetChatHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		ChatId string `json:"chat_id"`
