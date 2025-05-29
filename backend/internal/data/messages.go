@@ -20,6 +20,8 @@ type Message struct {
 	CreatedAt   time.Time          `bson:"created_at"`
 }
 
+const messageCollection = "messages"
+
 func (m *MessageModel) InsertMessageInstance(chatId, senderId, receiverId primitive.ObjectID, textContent string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -32,6 +34,6 @@ func (m *MessageModel) InsertMessageInstance(chatId, senderId, receiverId primit
 		CreatedAt:   time.Now(),
 	}
 
-	_, err := m.DB.Collection("messages").InsertOne(ctx, msg)
+	_, err := m.DB.Collection(messageCollection).InsertOne(ctx, msg)
 	return err
 }

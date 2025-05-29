@@ -93,3 +93,29 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 
 	helpers.WriteJSON(w, http.StatusOK, userToken)
 }
+
+func (app *Application) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		UserId string `json:"user_id"`
+	}
+
+	err := helpers.DeSerializeJSON(r.Body, 10000, &input)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userId, err := helpers.ConvertStringToObjectId(input.UserId)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	chats, err := app.Models.Chat.GetUserChats(userId)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helpers.WriteJSON(w, http.StatusOK, chats)
+}

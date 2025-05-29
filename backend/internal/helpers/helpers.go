@@ -7,14 +7,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 	"io"
+	"log/slog"
 	"net/http"
 )
 
-func WriteJSON(w http.ResponseWriter, status int, msg string) {
+func WriteJSON(w http.ResponseWriter, status int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_, err := w.Write([]byte(msg + "\n"))
+
+	err := json.NewEncoder(w).Encode(payload)
 	if err != nil {
-		w.WriteHeader(500)
+		slog.Error("encoding json", "error", err.Error())
 	}
 }
 

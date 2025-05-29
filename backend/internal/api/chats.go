@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 	"net/http"
 	. "whatsapp_clone/internal/errors"
 	"whatsapp_clone/internal/helpers"
@@ -25,6 +26,32 @@ func getParticipants(participants []string) ([]primitive.ObjectID, error) {
 
 	idSlice := []primitive.ObjectID{firstUser, secondUser}
 	return idSlice, nil
+}
+
+func (app *Application) GetChatHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		ChatId string `json:"chat_id"`
+	}
+
+	err := helpers.DeSerializeJSON(r.Body, 100000, &input)
+	if err != nil {
+		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	chatId, err := helpers.ConvertStringToObjectId(input.ChatId)
+	if err != nil {
+		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	chat, err := app.Models.Chat.GetChatInstance(chatId)
+	if err != nil {
+		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	log.Println(chat.Participants[0].Hex())
 }
 
 func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request) {
