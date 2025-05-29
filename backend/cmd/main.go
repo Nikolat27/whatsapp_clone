@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/go-redis/redis"
+	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log/slog"
@@ -39,9 +40,11 @@ func main() {
 
 	// Creating the models objects
 	models := data.NewModels(db)
+
 	app := &api.Application{
-		Models: models,
-		Rli:    rli,
+		Models:          models,
+		Rli:             rli,
+		ChatConnections: make(map[string]map[string]*websocket.Conn),
 	}
 
 	server := &http.Server{Addr: ":5000", Handler: routes.Route(app)}

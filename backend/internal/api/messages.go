@@ -6,48 +6,22 @@ import (
 	"whatsapp_clone/internal/helpers"
 )
 
-func (app *Application) CreateMessageHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		ChatId      string `json:"chat_id"`
-		SenderId    string `json:"sender_id"`
-		ReceiverId  string `json:"receiver_id"`
-		TextContent string `json:"text_content"`
-	}
-
-	err := helpers.DeSerializeJSON(r.Body, 10000, &input)
+func (app *Application) CreateMessage(chatId, senderId string, payload []byte) error {
+	chatObjectId, err := helpers.ConvertStringToObjectId(chatId)
 	if err != nil {
-		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+		return err
 	}
 
-	chatId, err := helpers.ConvertStringToObjectId(input.ChatId)
+	senderObjectId, err := helpers.ConvertStringToObjectId(senderId)
 	if err != nil {
-		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+		return err
 	}
 
-	senderId, err := helpers.ConvertStringToObjectId(input.ChatId)
+	err = app.Models.Message.InsertMessageInstance(chatObjectId, senderObjectId, payload)
 	if err != nil {
-		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+		return err
 	}
-
-	receiverId, err := helpers.ConvertStringToObjectId(input.ChatId)
-	if err != nil {
-		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if input.TextContent == "" {
-		errors.ServerErrorResponse(w, http.StatusBadRequest, "message is null")
-		return
-	}
-
-	err = app.Models.Message.InsertMessageInstance(chatId, senderId, receiverId, input.TextContent)
-	if err != nil {
-		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	return nil
 }
 
 func (app *Application) DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {

@@ -10,13 +10,10 @@ github-push:
 	@echo ""
 
 register-user:
-	curl -X POST 'http://localhost:5000/users/register/' -H "Content-Type: application/json" -d '{"username": "sa123123m", "password": "abc123"}'
+	curl -X POST 'http://localhost:5000/users/register/' -H "Content-Type: application/json" -d '{"username": "admin", "password": "abc123"}'
 
 login-user:
 	curl -X POST 'http://localhost:5000/users/login/' -H "Content-Type: application/json" -d '{"username": "sam", "password": "abc123", "userToken": "X6HPDdXXUf"}'
-
-create-message:
-	curl -X POST 'http://localhost:5000/messages/create/' -H "Content-Type: application/json" -d '{"chat_id": "66566c4e9f70b053ad1e8451", "sender_id": "66566c4e9f70b053ad1e8453", "receiver_id": "66566c4e9f70b053ad1e8452", "text_content": "hello world"}'
 	
 delete-message:
 	curl -X DELETE 'http://localhost:5000/messages/delete/68384d27196d5b09876d9dbb' 
@@ -32,4 +29,3 @@ get-chat:
 
 get-user-chats:
 	curl -X POST 'http://localhost:5000/users/chats/' -H "Content-Type: application/json" -d '{"user_id": "682722b817686ba22654c79f"}'
-
