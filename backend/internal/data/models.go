@@ -5,11 +5,15 @@ import (
 )
 
 type Models struct {
-	User UserModel
+	User    UserModel
+	Chat    ChatModel
+	Message MessageModel
 }
 
 func NewModels(db *mongo.Database) *Models {
 	return &Models{
-		User: UserModel{DB: db},
+		User:    UserModel{DB: db},
+		Chat:    ChatModel{DB: db},
+		Message: MessageModel{DB: db},
 	}
 }

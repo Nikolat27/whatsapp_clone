@@ -56,7 +56,7 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	
+
 	isAuthenticated, err := helpers.IsUserAuthenticated(app.Rli, r.Header.Get("X-User-Token"))
 	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusInternalServerError, "Server Internal Error")
@@ -78,7 +78,8 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	passwordSame := helpers.VerifyPassword(input.Password, user.Password)
+	hashedPassword := user.Password
+	passwordSame := helpers.VerifyPassword(input.Password, hashedPassword)
 	if passwordSame == false {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, "invalid password")
 		return

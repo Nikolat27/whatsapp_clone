@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-redis/redis"
 	"github.com/thanhpk/randstr"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"net/http"
@@ -46,4 +47,8 @@ func IsUserAuthenticated(rli *redis.Client, userToken string) (bool, error) {
 		return false, err
 	}
 	return val != "", nil
+}
+
+func ConvertStringToObjectId(str string) (primitive.ObjectID, error) {
+	return primitive.ObjectIDFromHex(str)
 }

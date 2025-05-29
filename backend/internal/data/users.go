@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,8 +12,7 @@ import (
 )
 
 type UserModel struct {
-	DB  *mongo.Database
-	rli *redis.Client
+	DB *mongo.Database
 }
 
 type User struct {
