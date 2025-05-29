@@ -18,11 +18,14 @@ login-user:
 create-message:
 	curl -X POST 'http://localhost:5000/messages/create/' -H "Content-Type: application/json" -d '{"chat_id": "66566c4e9f70b053ad1e8451", "sender_id": "66566c4e9f70b053ad1e8453", "receiver_id": "66566c4e9f70b053ad1e8452", "text_content": "hello world"}'
 	
+delete-message:
+	curl -X DELETE 'http://localhost:5000/messages/delete/68384d27196d5b09876d9dbb' 
+
 create-chat:
 	curl -X POST 'http://localhost:5000/chats/create/' -H "Content-Type: application/json" -d '{"participants": ["682722b817686ba22654c79f", "665755ae6fb2a8e4e4d3a0c2"]}'
 	
 delete-chat:
-	curl -X DELETE 'http://localhost:5000/chats/delete/' -H "Content-Type: application/json" -d '{"chat_id": "683829b83e03d29feaacf67a"}'
+	curl -X DELETE 'http://localhost:5000/chats/delete/683829b83e03d29feaacf67a' 
 	
 get-chat:
 	curl -X POST 'http://localhost:5000/chats/get/' -H "Content-Type: application/json" -d '{"chat_id": "68382f5c0a2e91ac833b7a38"}'

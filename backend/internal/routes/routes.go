@@ -16,11 +16,12 @@ func Route(app *api.Application) *httprouter.Router {
 
 	// Message
 	router.HandlerFunc(http.MethodPost, "/messages/create/", app.CreateMessageHandler)
+	router.HandlerFunc(http.MethodDelete, "/messages/delete/:id", app.DeleteMessageHandler)
 
 	// Chat
 	router.HandlerFunc(http.MethodPost, "/chats/create/", app.CreateChatHandler)
 	router.HandlerFunc(http.MethodPost, "/chats/get/", app.GetChatHandler)
-	router.HandlerFunc(http.MethodDelete, "/chats/delete/", app.DeleteChatHandler)
+	router.HandlerFunc(http.MethodDelete, "/chats/delete/:id", app.DeleteChatHandler)
 
 	return router
 }

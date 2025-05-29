@@ -2,7 +2,9 @@ package helpers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/go-redis/redis"
+	"github.com/julienschmidt/httprouter"
 	"github.com/thanhpk/randstr"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
@@ -54,4 +56,13 @@ func IsUserAuthenticated(rli *redis.Client, userToken string) (bool, error) {
 
 func ConvertStringToObjectId(str string) (primitive.ObjectID, error) {
 	return primitive.ObjectIDFromHex(str)
+}
+
+func ReadIDParam(r *http.Request) (string, error) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id := params.ByName("id")
+	if len(id) < 1 {
+		return "", errors.New("no id received")
+	}
+	return id, nil
 }

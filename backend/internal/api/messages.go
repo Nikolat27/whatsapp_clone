@@ -49,3 +49,25 @@ func (app *Application) CreateMessageHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 }
+
+func (app *Application) DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := helpers.ReadIDParam(r)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	msgId, err := helpers.ConvertStringToObjectId(id)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = app.Models.Message.DeleteMessageInstance(msgId)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helpers.WriteJSON(w, http.StatusOK, "msg deleted successfully")
+}

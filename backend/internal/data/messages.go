@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
@@ -35,5 +36,17 @@ func (m *MessageModel) InsertMessageInstance(chatId, senderId, receiverId primit
 	}
 
 	_, err := m.DB.Collection(messageCollection).InsertOne(ctx, msg)
+	return err
+}
+
+func (m *MessageModel) DeleteMessageInstance(msgId primitive.ObjectID) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"_id": msgId,
+	}
+
+	_, err := m.DB.Collection(messageCollection).DeleteOne(ctx, filter)
 	return err
 }

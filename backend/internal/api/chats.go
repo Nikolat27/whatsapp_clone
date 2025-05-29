@@ -80,17 +80,13 @@ func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *Application) DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		ChatId string `json:"chat_id"`
-	}
-
-	err := helpers.DeSerializeJSON(r.Body, 10000, &input)
+	id, err := helpers.ReadIDParam(r)
 	if err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	chatId, err := helpers.ConvertStringToObjectId(input.ChatId)
+	chatId, err := helpers.ConvertStringToObjectId(id)
 	if err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
