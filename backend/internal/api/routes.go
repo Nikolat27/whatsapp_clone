@@ -1,12 +1,11 @@
-package routes
+package api
 
 import (
 	"github.com/julienschmidt/httprouter"
 	"net/http"
-	"whatsapp_clone/internal/api"
 )
 
-func Route(app *api.Application) *httprouter.Router {
+func routes(app *Application) *httprouter.Router {
 	router := httprouter.New()
 
 	// Auth
