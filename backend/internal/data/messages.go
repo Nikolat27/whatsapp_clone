@@ -47,7 +47,7 @@ func (m *MessageModel) UpdateMessageInstance(msgId primitive.ObjectID, newText [
 
 	update := bson.M{
 		"$set": bson.M{
-			"text_content": newText,
+			"text_content": string(newText),
 		},
 	}
 
