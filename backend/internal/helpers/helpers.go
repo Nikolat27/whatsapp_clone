@@ -31,12 +31,12 @@ func WriteJSON(w http.ResponseWriter, status int, payload interface{}) {
 }
 
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-	return string(bytes), err
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	return string(passwordHash), err
 }
 
-func VerifyPassword(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+func VerifyPassword(password, hash []byte) bool {
+	err := bcrypt.CompareHashAndPassword(hash, password)
 	return err == nil
 }
 

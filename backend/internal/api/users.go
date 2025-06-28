@@ -79,13 +79,13 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	hashedPassword := user.Password
-	passwordSame := helpers.VerifyPassword(input.Password, hashedPassword)
+	passwordSame := helpers.VerifyPassword([]byte(input.Password), []byte(hashedPassword))
 	if passwordSame == false {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, "invalid password")
 		return
 	}
 
-	userToken := helpers.GenerateRandomString(10)
+	userToken := helpers.GenerateRandomString(10)``
 	userId := fmt.Sprintf("user-%s", user.Id)
 	redisExpiration := 7 * 24 * time.Hour // 7 days
 
