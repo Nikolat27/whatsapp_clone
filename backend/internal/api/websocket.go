@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gorilla/websocket"
+	"log/slog"
 	"net/http"
 )
 
@@ -28,7 +29,10 @@ func (app *Application) addConnection(chatID, userID string, conn *websocket.Con
 func (app *Application) handleWebSocketConnection(conn *websocket.Conn, chatID, userID string) error {
 	defer func() {
 		app.removeConnection(chatID, userID)
-		conn.Close()
+		err := conn.Close()
+		if err != nil {
+			slog.Error("closing web socket conn", "error", err)
+		}
 	}()
 
 	_, payload, err := conn.ReadMessage()
@@ -58,14 +62,13 @@ func (app *Application) handleWebSocketConnection(conn *websocket.Conn, chatID, 
 
 		err = app.CreateMessage(chatID, userID, payload) // Insert into the database
 		if err != nil {
-			writeErr := conn.WriteJSON(err.Error())
-			if writeErr != nil {
-				return writeErr
+			err2 := conn.WriteJSON(err.Error())
+			if err2 != nil {
+				return err2
 			}
 			return err
 		}
-		err = app.publishMessage(chatID, userID, messageType, payload)
-		if err != nil {
+		if err = app.publishMessage(chatID, userID, messageType, payload); err != nil {
 			return err
 		}
 	}
@@ -84,9 +87,8 @@ func (app *Application) publishMessage(chatID, senderUserID string, messageType 
 		if userId == senderUserID {
 			continue // Sender does not receive their own msg
 		}
-
-		err := conn.WriteMessage(messageType, message)
-		if err != nil {
+		
+		if err := conn.WriteMessage(messageType, message); err != nil {
 			app.removeConnection(chatID, userId)
 			return err
 		}
