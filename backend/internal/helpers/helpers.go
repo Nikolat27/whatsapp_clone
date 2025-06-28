@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/go-redis/redis"
@@ -9,17 +10,23 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 	"io"
-	"log/slog"
 	"net/http"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
 
-	err := json.NewEncoder(w).Encode(payload)
+	// Use a buffer to encode first
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(payload); err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(status)
+	_, err := w.Write(buf.Bytes())
 	if err != nil {
-		slog.Error("encoding json", "error", err.Error())
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
