@@ -1,9 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/gorilla/websocket"
-	"log"
 	"net/http"
 )
 
@@ -31,6 +31,25 @@ func (app *Application) handleWebSocketConnection(conn *websocket.Conn, chatID, 
 		conn.Close()
 	}()
 
+	_, payload, err := conn.ReadMessage()
+	if err != nil {
+		return err
+	}
+
+	var msg struct {
+		Type      string `json:"type"`
+		PublicKey string `json:"publicKey"`
+	}
+	if err := json.Unmarshal(payload, &msg); err != nil || msg.Type != "public_key" {
+		return errors.New("expected public key message")
+	}
+
+	app.ConnMu.Lock()
+	app.PublicKeys[userID] = msg.PublicKey
+	app.ConnMu.Unlock()
+
+	app.addConnection(chatID, userID, conn)
+
 	for {
 		messageType, payload, err := conn.ReadMessage()
 		if err != nil {
@@ -41,10 +60,8 @@ func (app *Application) handleWebSocketConnection(conn *websocket.Conn, chatID, 
 		if err != nil {
 			writeErr := conn.WriteJSON(err.Error())
 			if writeErr != nil {
-				log.Println("hi 2")
 				return writeErr
 			}
-			log.Println("hi 3")
 			return err
 		}
 		err = app.publishMessage(chatID, userID, messageType, payload)
@@ -67,6 +84,7 @@ func (app *Application) publishMessage(chatID, senderUserID string, messageType 
 		if userId == senderUserID {
 			continue // Sender does not receive their own msg
 		}
+
 		err := conn.WriteMessage(messageType, message)
 		if err != nil {
 			app.removeConnection(chatID, userId)

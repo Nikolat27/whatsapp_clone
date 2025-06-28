@@ -12,4 +12,5 @@ type Application struct {
 	Rli             *redis.Client
 	ChatConnections map[string]map[string]*websocket.Conn
 	ConnMu          sync.Mutex
+	PublicKeys      map[string]string // userid -> public key
 }
