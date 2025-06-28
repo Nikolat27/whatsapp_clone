@@ -37,6 +37,24 @@ func (m *MessageModel) InsertMessageInstance(chatId, senderId primitive.ObjectID
 	return err
 }
 
+func (m *MessageModel) UpdateMessageInstance(msgId primitive.ObjectID, newText []byte) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"_id": msgId,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"text_content": newText,
+		},
+	}
+
+	_, err := m.DB.Collection(messageCollection).UpdateOne(ctx, filter, update)
+	return err
+}
+
 func (m *MessageModel) DeleteMessageInstance(msgId primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
