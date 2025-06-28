@@ -62,6 +62,24 @@ func (u *UserModel) GetUserInstance(username string) (*User, error) {
 	return &user, nil
 }
 
+func (u *UserModel) UpdateUserInstance(userId primitive.ObjectID, username []byte) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"_id": userId,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"username": string(username),
+		},
+	}
+
+	_, err := u.DB.Collection(userCollection).UpdateOne(ctx, filter, update)
+	return err
+}
+
 func (u *UserModel) DeleteUserInstance(userId primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -69,8 +87,8 @@ func (u *UserModel) DeleteUserInstance(userId primitive.ObjectID) error {
 	filter := bson.M{
 		"_id": userId,
 	}
-	
-	result,  err := u.DB.Collection(userCollection).DeleteOne(ctx, filter)
+
+	result, err := u.DB.Collection(userCollection).DeleteOne(ctx, filter)
 	if err != nil {
 		return err
 	}
