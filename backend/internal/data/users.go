@@ -22,6 +22,8 @@ type User struct {
 	CreatedAt time.Time          `bson:"createdAt"`
 }
 
+const userCollection = "users"
+
 func (u *UserModel) CreateUserInstance(username, password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -36,7 +38,7 @@ func (u *UserModel) CreateUserInstance(username, password string) error {
 		Password:  hashedPassword,
 		CreatedAt: time.Now().UTC(),
 	}
-	_, err = u.DB.Collection("users").InsertOne(ctx, user)
+	_, err = u.DB.Collection(userCollection).InsertOne(ctx, user)
 	return err
 }
 
@@ -47,7 +49,7 @@ func (u *UserModel) GetUserInstance(username string) (*User, error) {
 	filter := bson.D{{"username", username}}
 
 	var user User
-	err := u.DB.Collection("users").FindOne(ctx, filter).Decode(&user)
+	err := u.DB.Collection(userCollection).FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
