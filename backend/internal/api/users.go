@@ -85,9 +85,9 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	userToken := helpers.GenerateRandomString(10)``
+	userToken := helpers.GenerateRandomString(10)
 	userId := fmt.Sprintf("user-%s", user.Id)
-	redisExpiration := 7 * 24 * time.Hour // 7 days
+	redisExpiration := 24 * time.Hour * 7 // 7 days
 
 	app.Rli.Set(userToken, userId, redisExpiration)
 
