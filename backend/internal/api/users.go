@@ -62,6 +62,7 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 		errors.ServerErrorResponse(w, http.StatusInternalServerError, "Server Internal Error")
 		return
 	}
+	
 	if isAuthenticated == true {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, "user is already logged in")
 		return
@@ -79,8 +80,8 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	hashedPassword := user.Password
-	passwordSame := helpers.VerifyPassword([]byte(input.Password), []byte(hashedPassword))
-	if passwordSame == false {
+	arePasswordsSame := helpers.VerifyPassword([]byte(input.Password), []byte(hashedPassword))
+	if arePasswordsSame == false {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, "invalid password")
 		return
 	}

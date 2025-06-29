@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"github.com/gorilla/websocket"
 	"log/slog"
 	"net/http"
@@ -18,8 +17,7 @@ var upgrader = websocket.Upgrader{
 func (app *Application) handleWebSocketConnection(conn *websocket.Conn, chatID, userID string) error {
 	defer func() {
 		app.removeConnection(chatID, userID)
-		err := conn.Close()
-		if err != nil {
+		if err := conn.Close(); err != nil {
 			slog.Error("closing web socket conn", "error", err)
 		}
 	}()
@@ -32,15 +30,14 @@ func (app *Application) handleWebSocketConnection(conn *websocket.Conn, chatID, 
 			return err
 		}
 
-		err = app.CreateMessage(chatID, userID, payload) // Insert into the database
-		if err != nil {
-			err2 := conn.WriteJSON(err.Error())
-			if err2 != nil {
+		 // Insert into the db
+		if err = app.CreateMessage(chatID, userID, payload); err != nil {
+			if err2 := conn.WriteJSON(err.Error()); err2 != nil {
 				return err2
 			}
 			return err
 		}
-		if err = app.publishMessage(chatID, userID, messageType, payload); err != nil {
+		if err = app.PublishMessageToChat(chatID, userID, messageType, payload); err != nil {
 			return err
 		}
 	}
@@ -54,28 +51,6 @@ func (app *Application) addConnection(chatID, userID string, conn *websocket.Con
 		app.ChatConnections[chatID] = make(map[string]*websocket.Conn)
 	}
 	app.ChatConnections[chatID][userID] = conn
-}
-
-func (app *Application) publishMessage(chatID, senderUserID string, messageType int, message []byte) error {
-	app.ConnMu.Lock()
-	defer app.ConnMu.Unlock()
-
-	connections, ok := app.ChatConnections[chatID]
-	if !ok {
-		return errors.New("connection does not exist")
-	}
-
-	for userId, conn := range connections {
-		if userId == senderUserID {
-			continue // Sender does not receive their own msg
-		}
-
-		if err := conn.WriteMessage(messageType, message); err != nil {
-			app.removeConnection(chatID, userId)
-			return err
-		}
-	}
-	return nil
 }
 
 func (app *Application) removeConnection(chatID, userID string) {

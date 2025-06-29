@@ -13,9 +13,8 @@ func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request
 	var input struct {
 		Participants []string `json:"participants"`
 	}
-
-	err := helpers.DeSerializeJSON(r.Body, 10000, &input)
-	if err != nil {
+	
+	if err := helpers.DeSerializeJSON(r.Body, 10000, &input); err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -25,14 +24,13 @@ func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
-	err = app.Models.Chat.CreateChatInstance(participants, nil)
-	if err != nil {
+	
+	if err = app.Models.Chat.CreateChatInstance(participants, nil); err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	helpers.WriteJSON(w, http.StatusCreated, "chat created successfully")
+	w.WriteHeader(http.StatusCreated)
 }
 
 func getParticipants(participants []string) ([]primitive.ObjectID, error) {
@@ -72,8 +70,7 @@ func (app *Application) ChatSocketHandler(w http.ResponseWriter, r *http.Request
 	app.addConnection(chatID, userID, conn)
 
 	go func() {
-		err = app.handleWebSocketConnection(conn, chatID, userID)
-		if err != nil {
+		if err = app.handleWebSocketConnection(conn, chatID, userID); err != nil {
 			ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -84,9 +81,8 @@ func (app *Application) GetChatHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		ChatId string `json:"chat_id"`
 	}
-
-	err := helpers.DeSerializeJSON(r.Body, 100000, &input)
-	if err != nil {
+	
+	if err := helpers.DeSerializeJSON(r.Body, 100000, &input); err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -118,9 +114,8 @@ func (app *Application) DeleteChatHandler(w http.ResponseWriter, r *http.Request
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
-	err = app.Models.Chat.DeleteChatInstance(chatId)
-	if err != nil {
+	
+	if err = app.Models.Chat.DeleteChatInstance(chatId) ; err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}

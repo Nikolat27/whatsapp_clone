@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"log/slog"
 	"time"
 )
 
@@ -16,7 +17,7 @@ type ChatModel struct {
 type Chat struct {
 	Id           primitive.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
 	Participants []primitive.ObjectID `bson:"participants" json:"participants,omitempty"`
-	LastMassage  *Message             `bson:"last_massage" json:"last_message,omitempty"`
+	LastMessage  *Message             `bson:"last_message" json:"last_message,omitempty"`
 	CreatedAt    time.Time            `bson:"created_at" json:"created_at,omitempty"`
 }
 
@@ -26,12 +27,12 @@ func (c *ChatModel) CreateChatInstance(participants []primitive.ObjectID, lastMe
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	chat := Chat{
+	var chat = &Chat{
 		Participants: participants,
-		LastMassage:  lastMessage,
+		LastMessage:  lastMessage,
 		CreatedAt:    time.Now(),
 	}
-
+	
 	_, err := c.DB.Collection(chatCollection).InsertOne(ctx, chat)
 	return err
 }
@@ -45,10 +46,10 @@ func (c *ChatModel) GetChatInstance(chatId primitive.ObjectID) (*Chat, error) {
 	}
 
 	var chat Chat
-	err := c.DB.Collection(chatCollection).FindOne(ctx, filter).Decode(&chat)
-	if err != nil {
+	if err := c.DB.Collection(chatCollection).FindOne(ctx, filter).Decode(&chat); err != nil {
 		return nil, err
 	}
+	
 	return &chat, nil
 }
 
@@ -64,9 +65,11 @@ func (c *ChatModel) DeleteChatInstance(id primitive.ObjectID) error {
 	if err != nil {
 		return err
 	}
+	
 	if res.DeletedCount == 0 {
-		return errors.New("no chat found with that id")
+		return errors.New("no chat found matching that ID")
 	}
+	
 	return nil
 }
 
@@ -82,11 +85,15 @@ func (c *ChatModel) GetUserChats(userId primitive.ObjectID) ([]Chat, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
+	
+	defer func() {
+		if err := cursor.Close(ctx); err != nil {
+			slog.Error("closing cursor", "error", err)
+		}
+	}()
 
 	var chats []Chat
-	err = cursor.All(ctx, &chats)
-	if err != nil {
+	if err = cursor.All(ctx, &chats); err != nil {
 		return nil, err
 	}
 
