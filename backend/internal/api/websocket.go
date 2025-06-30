@@ -16,34 +16,23 @@ var upgrader = websocket.Upgrader{
 
 func (app *Application) handleWebSocketConnection(conn *websocket.Conn, chatID, userID string) error {
 	defer func() {
-		app.removeConnection(chatID, userID)
+		app.removeWebSocketConn(chatID, userID)
 		if err := conn.Close(); err != nil {
 			slog.Error("closing web socket conn", "error", err)
 		}
 	}()
 
-	app.addConnection(chatID, userID, conn)
+	app.addWebSocketConn(chatID, userID, conn)
 
 	for {
-		messageType, payload, err := conn.ReadMessage()
+		err := app.HandleIncomingMessages(chatID, userID, conn)
 		if err != nil {
-			return err
-		}
-
-		 // Insert into the db
-		if err = app.CreateMessage(chatID, userID, payload); err != nil {
-			if err2 := conn.WriteJSON(err.Error()); err2 != nil {
-				return err2
-			}
-			return err
-		}
-		if err = app.PublishMessageToChat(chatID, userID, messageType, payload); err != nil {
 			return err
 		}
 	}
 }
 
-func (app *Application) addConnection(chatID, userID string, conn *websocket.Conn) {
+func (app *Application) addWebSocketConn(chatID, userID string, conn *websocket.Conn) {
 	app.ConnMu.Lock()
 	defer app.ConnMu.Unlock()
 
@@ -53,7 +42,7 @@ func (app *Application) addConnection(chatID, userID string, conn *websocket.Con
 	app.ChatConnections[chatID][userID] = conn
 }
 
-func (app *Application) removeConnection(chatID, userID string) {
+func (app *Application) removeWebSocketConn(chatID, userID string) {
 	app.ConnMu.Lock()
 	defer app.ConnMu.Unlock()
 

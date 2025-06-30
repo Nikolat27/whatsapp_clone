@@ -1,8 +1,10 @@
 {
-  "compilerOptions": {
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true
-  }
+    "compilerOptions": {
+        "module": "ESNext", // or "ES2020", "ES2022", etc.
+        "target": "ESNext", // optional, but recommended for modern syntax
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "allowSyntheticDefaultImports": true
+    }
 }

@@ -12,6 +12,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"whatsapp_clone/cipher"
 	"whatsapp_clone/internal/data"
 )
 
@@ -22,6 +23,7 @@ type Application struct {
 	ChatConnections map[string]map[string]*websocket.Conn
 	ConnMu          sync.Mutex
 	PublicKeys      map[string]string // {"userid": "public key"}
+	Cipher          *cipher.Cipher
 }
 
 func NewApp() (*Application, error) {
@@ -40,22 +42,30 @@ func NewApp() (*Application, error) {
 		return nil, err
 	}
 
+	cip, err := cipher.InitCipher()
+	if err != nil {
+		return nil, err
+	}
+
 	// Creating the models objects
 	models := data.NewModels(db)
 	app := &Application{
 		Models:          models,
 		Rli:             rli,
+		Cipher:          cip,
 		ChatConnections: make(map[string]map[string]*websocket.Conn),
 	}
 
-	app.setupHttpServer()
+	srv := app.setupHttpServer()
+	app.Server = srv
+	
 	return app, nil
 }
 
-func (app *Application) setupHttpServer() {
+func (app *Application) setupHttpServer() *http.Server {
 	port := getPortHTTP()
 
-	app.Server = &http.Server{
+	return &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: routes(app),
 	}
@@ -94,7 +104,7 @@ func setupRedis() (*redis.Client, error) {
 		Password: "",
 		DB:       0,
 	})
-	
+
 	_, err := client.Ping().Result()
 	if err != nil {
 		return nil, err

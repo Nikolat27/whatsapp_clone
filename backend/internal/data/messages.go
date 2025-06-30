@@ -22,14 +22,14 @@ type Message struct {
 
 const messageCollection = "messages"
 
-func (m *MessageModel) InsertMessageInstance(chatId, senderId primitive.ObjectID, textContent []byte) error {
+func (m *MessageModel) InsertMessageInstance(chatId, senderId primitive.ObjectID, payload []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	msg := Message{
 		ChatId:      chatId,
 		SenderId:    senderId,
-		TextContent: string(textContent),
+		TextContent: string(payload),
 		CreatedAt:   time.Now(),
 	}
 

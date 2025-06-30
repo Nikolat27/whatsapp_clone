@@ -2,9 +2,9 @@ package errors
 
 import (
 	"net/http"
-	"whatsapp_clone/internal/helpers"
+	jsonHelper "whatsapp_clone/internal/helpers/json"
 )
 
 func ServerErrorResponse(w http.ResponseWriter, status int, msg string) {
-	helpers.WriteJSON(w, status, msg)
+	jsonHelper.WriteJSON(w, status, msg)
 }

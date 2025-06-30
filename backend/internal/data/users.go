@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
-	"whatsapp_clone/internal/helpers"
+	passwordHelper "whatsapp_clone/internal/helpers/password"
 )
 
 type UserModel struct {
@@ -28,7 +28,7 @@ func (u *UserModel) CreateUserInstance(username, password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	hashedPassword, err := helpers.HashPassword(password)
+	hashedPassword, err := passwordHelper.HashPassword(password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password %s", err)
 	}
