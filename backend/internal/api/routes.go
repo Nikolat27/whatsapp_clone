@@ -16,6 +16,9 @@ func routes(app *Application) *httprouter.Router {
 
 	// User
 	router.HandlerFunc(http.MethodPost, "/api/users/chats/", app.GetUserChatsHandler)
+	router.HandlerFunc(http.MethodPost, "/api/users/search/", app.SearchUserHandler)
+	router.HandlerFunc(http.MethodPut, "/api/users/update/", app.UpdateUserHandler)
+	router.HandlerFunc(http.MethodPut, "/api/users/profilepic/", app.UploadProfilePicHandler)
 
 	// Message
 	router.HandlerFunc(http.MethodDelete, "/api/messages/delete/:id", app.DeleteMessageHandler)

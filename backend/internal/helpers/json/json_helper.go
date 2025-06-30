@@ -24,7 +24,7 @@ func WriteJSON(w http.ResponseWriter, status int, payload interface{}) {
 	}
 }
 
-func DeSerializeJSON(body io.Reader, maxBytes int64, obj any) error {
+func DeSerialize(body io.Reader, maxBytes int64, obj any) error {
 	body = io.LimitReader(body, maxBytes)
 	err := json.NewDecoder(body).Decode(&obj)
 	return err

@@ -16,7 +16,7 @@ func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request
 		Participants []string `json:"participants"`
 	}
 
-	if err := jsonHelper.DeSerializeJSON(r.Body, 10000, &input); err != nil {
+	if err := jsonHelper.DeSerialize(r.Body, 10000, &input); err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -84,7 +84,7 @@ func (app *Application) GetChatHandler(w http.ResponseWriter, r *http.Request) {
 		ChatId string `json:"chat_id"`
 	}
 
-	if err := jsonHelper.DeSerializeJSON(r.Body, 100000, &input); err != nil {
+	if err := jsonHelper.DeSerialize(r.Body, 100000, &input); err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}

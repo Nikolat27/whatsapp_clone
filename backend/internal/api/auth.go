@@ -28,7 +28,7 @@ func (app *Application) RegisterUserHandler(w http.ResponseWriter, r *http.Reque
 		Password string `json:"password"`
 	}
 
-	if err := jsonHelper.DeSerializeJSON(r.Body, 10000, &input); err != nil {
+	if err := jsonHelper.DeSerialize(r.Body, 10000, &input); err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -74,7 +74,7 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 		Password string `json:"password"`
 	}
 
-	if err := jsonHelper.DeSerializeJSON(r.Body, 10000, &input); err != nil {
+	if err := jsonHelper.DeSerialize(r.Body, 10000, &input); err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -98,10 +98,10 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	userToken := authHelper.GenerateRandomString(10)
-	userId := fmt.Sprintf("user-%s", user.Id)
-
 	tokenExpireTime := 24 * time.Hour * 7 // 7 days
 
+	userId := user.Id.Hex()
+	fmt.Println(userId)
 	app.Rli.Set(userToken, userId, tokenExpireTime)
 
 	cookie := authHelper.GenerateHTTPOnlyCookie("authToken", userToken, tokenExpireTime)

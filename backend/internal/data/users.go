@@ -16,10 +16,13 @@ type UserModel struct {
 }
 
 type User struct {
-	Id        primitive.ObjectID `bson:"_id,omitempty"`
-	Username  string             `bson:"username"`
-	Password  string             `bson:"password"`
-	CreatedAt time.Time          `bson:"createdAt"`
+	Id            primitive.ObjectID `bson:"_id,omitempty"`
+	Username      string             `bson:"username"`
+	Password      string             `bson:"password"`
+	Name          string             `bson:"name"`
+	about         string             `bson:"about"`
+	profilePicUrl string             `bson:"profile_pic_url"`
+	CreatedAt     time.Time          `bson:"createdAt"`
 }
 
 const userCollection = "users"
@@ -62,7 +65,7 @@ func (u *UserModel) GetUserInstance(username string) (*User, error) {
 	return &user, nil
 }
 
-func (u *UserModel) UpdateUserInstance(userId primitive.ObjectID, username []byte) error {
+func (u *UserModel) UpdateUserInstance(userId primitive.ObjectID, updates bson.M) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -71,9 +74,7 @@ func (u *UserModel) UpdateUserInstance(userId primitive.ObjectID, username []byt
 	}
 
 	update := bson.M{
-		"$set": bson.M{
-			"username": string(username),
-		},
+		"$set": updates,
 	}
 
 	_, err := u.DB.Collection(userCollection).UpdateOne(ctx, filter, update)
@@ -98,4 +99,15 @@ func (u *UserModel) DeleteUserInstance(userId primitive.ObjectID) error {
 	}
 
 	return nil
+}
+
+func (u *UserModel) SearchUsers(username string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"username": username,
+	}
+
+	_ = u.DB.Collection(userCollection).FindOne(ctx, filter)
 }

@@ -20,6 +20,19 @@ func IsUserAuthenticated(r *http.Request) (bool, error) {
 	return cookie != nil, nil
 }
 
+func GetUserAuthToken(r *http.Request) ([]byte, error) {
+	cookie, err := r.Cookie("authToken")
+	if errors.Is(err, http.ErrNoCookie) {
+		return nil, errors.New("user is not logged in")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(cookie.Value), nil
+}
+
 func GenerateRandomString(length int) string {
 	return randstr.String(length)
 }
