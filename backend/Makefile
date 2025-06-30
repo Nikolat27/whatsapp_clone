@@ -4,11 +4,11 @@ runserver:
 	go run cmd/main.go
 	
 github-push:
-	@echo "Enter the branch name (e.g. master, main, dev): "; \
-	read branch; \
-	echo "pushing to GitHub..."; \
-	git push https://${GITHUB_USERNAME}:${GITHUB_PAT}@github.com/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}.git $$branch; \ 
-	echo ""
+	@echo "Enter the branch name (e.g. master, main, dev): " \
+	@read branch \
+	@echo "pushing to GitHub..." \
+	@echo "" \ 
+	@git push https://${GITHUB_USERNAME}:${GITHUB_PAT}@github.com/${GITHUB_USERNAME}/${GITHUB_REPO_NAME}.git $$branch \ 
 
 register-user:
 	curl -X POST 'http://localhost:5000/users/register/' -H "Content-Type: application/json" -d '{"username": "sam", "password": "admin"}'
