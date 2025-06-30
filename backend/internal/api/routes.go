@@ -11,8 +11,9 @@ func routes(app *Application) *httprouter.Router {
 	// Auth
 	router.HandlerFunc(http.MethodPost, "/api/auth/register/", app.RegisterUserHandler)
 	router.HandlerFunc(http.MethodPost, "/api/auth/login/", app.LoginUserHandler)
+	router.HandlerFunc(http.MethodDelete, "/api/auth/logout", app.LogoutUserHandler)
 	router.HandlerFunc(http.MethodGet, "/api/auth/check", app.CheckAuthHandler)
-	
+
 	// User
 	router.HandlerFunc(http.MethodPost, "/api/users/chats/", app.GetUserChatsHandler)
 
@@ -26,6 +27,6 @@ func routes(app *Application) *httprouter.Router {
 
 	// Web socket
 	router.HandlerFunc(http.MethodGet, "/api/chats/open-socket", app.ChatSocketHandler)
-		
+
 	return router
 }

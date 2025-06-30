@@ -7,35 +7,47 @@ import (
 	"time"
 )
 
-func IsUserAuthenticated(r *http.Request) error {
-	exist, err := r.Cookie("authToken")
+func IsUserAuthenticated(r *http.Request) (bool, error) {
+	cookie, err := r.Cookie("authToken")
+	if errors.Is(err, http.ErrNoCookie) {
+		return false, nil // user is not logged in
+	}
+
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	if exist != nil {
-		return errors.New("user is already logged in")
-	}
-
-	return nil
+	return cookie != nil, nil
 }
 
 func GenerateRandomString(length int) string {
 	return randstr.String(length)
 }
 
-func GenerateHTTPOnlyCookie(authToken string, duration time.Duration) *http.Cookie {
+func GenerateHTTPOnlyCookie(name, value string, duration time.Duration) *http.Cookie {
 	expireTime := convertTimeToDuration(duration)
 
 	return &http.Cookie{
-		Name:     "authToken",
-		Value:    authToken,
+		Name:     name,
+		Value:    value,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 		Expires:  expireTime,
 	}
+}
+
+func DeleteHTTPOnlyCookie(w http.ResponseWriter, name string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     name,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
 }
 
 func convertTimeToDuration(duration time.Duration) time.Time {

@@ -11,9 +11,14 @@ import (
 )
 
 func (app *Application) RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
-	err := authHelper.IsUserAuthenticated(r)
+	isAuthenticated, err := authHelper.IsUserAuthenticated(r)
 	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if isAuthenticated {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, "user is already logged in")
 		return
 	}
 
@@ -53,9 +58,14 @@ func (app *Application) RegisterUserHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
-	err := authHelper.IsUserAuthenticated(r)
+	isAuthenticated, err := authHelper.IsUserAuthenticated(r)
 	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if isAuthenticated {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, "user is already logged in")
 		return
 	}
 
@@ -94,18 +104,37 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 
 	app.Rli.Set(userToken, userId, tokenExpireTime)
 
-	cookie := authHelper.GenerateHTTPOnlyCookie(userToken, tokenExpireTime)
+	cookie := authHelper.GenerateHTTPOnlyCookie("authToken", userToken, tokenExpireTime)
 	http.SetCookie(w, cookie)
 
 	w.WriteHeader(http.StatusOK)
 }
 
+func (app *Application) LogoutUserHandler(w http.ResponseWriter, r *http.Request) {
+	isAuthenticated, err := authHelper.IsUserAuthenticated(r)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if !isAuthenticated {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, "user is not logged in")
+		return
+	}
+
+	authHelper.DeleteHTTPOnlyCookie(w, "authToken")
+}
+
 func (app *Application) CheckAuthHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Cookie("authToken")
+	cookie, err := r.Cookie("authToken")
 	if err != nil {
 		http.Error(w, "Error reading cookie", http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	if cookie != nil {
+		w.WriteHeader(http.StatusOK) // user is logged in
+	} else {
+		w.WriteHeader(http.StatusBadRequest) // user is not logged in
+	}
 }
