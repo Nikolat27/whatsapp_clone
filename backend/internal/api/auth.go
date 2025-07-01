@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 	"whatsapp_clone/internal/errors"
@@ -38,7 +37,7 @@ func (app *Application) RegisterUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user, err := app.Models.User.GetUserInstance(input.Username)
+	user, err := app.Models.User.GetUserInstanceByUsername(input.Username)
 	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
@@ -84,12 +83,12 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, err := app.Models.User.GetUserInstance(input.Username)
+	user, err := app.Models.User.GetUserInstanceByUsername(input.Username)
 	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
+	
 	hashedPassword := user.Password
 	arePasswordsSame := passwordHelper.VerifyPassword([]byte(input.Password), []byte(hashedPassword))
 	if arePasswordsSame == false {
@@ -101,7 +100,6 @@ func (app *Application) LoginUserHandler(w http.ResponseWriter, r *http.Request)
 	tokenExpireTime := 24 * time.Hour * 7 // 7 days
 
 	userId := user.Id.Hex()
-	fmt.Println(userId)
 	app.Rli.Set(userToken, userId, tokenExpireTime)
 
 	cookie := authHelper.GenerateHTTPOnlyCookie("authToken", userToken, tokenExpireTime)

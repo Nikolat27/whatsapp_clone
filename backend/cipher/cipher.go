@@ -59,6 +59,7 @@ func (c *Cipher) Decrypt(cipherText []byte) ([]byte, error) {
 	}
 
 	nonce, encrypted := cipherText[:nonceSize], cipherText[nonceSize:]
+	
 	plainText, err := gcm.Open(nil, nonce, encrypted, nil)
 	if err != nil {
 		return nil, err

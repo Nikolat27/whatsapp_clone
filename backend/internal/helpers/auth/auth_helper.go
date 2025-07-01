@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"github.com/thanhpk/randstr"
 	"net/http"
 	"time"
@@ -14,6 +15,7 @@ func IsUserAuthenticated(r *http.Request) (bool, error) {
 	}
 
 	if err != nil {
+		fmt.Println("Error: ", err)
 		return false, err
 	}
 

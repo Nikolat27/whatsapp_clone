@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import logoutIcon from "/src/assets/icons/svg-icons/logout-icon.svg";
 import axiosInstance from "../utils/axiosInstance";
+import { useUserStore } from "../stores/user";
 
 const toast = useToast();
 
@@ -19,6 +21,12 @@ const submitLogout = async () => {
         })
         .catch((error) => console.error(error));
 };
+
+const userStore = useUserStore();
+
+onMounted(async () => {
+    console.log(userStore.user);
+});
 </script>
 <template>
     <router-link to="/">
@@ -132,7 +140,7 @@ const submitLogout = async () => {
             >
                 <img
                     class="w-full h-full rounded-full"
-                    src="../../barcelona-logo.jpg"
+                    :src="userStore.user.profile_url"
                     alt=""
                 />
             </button>

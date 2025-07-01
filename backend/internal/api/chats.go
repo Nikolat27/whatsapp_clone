@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -11,9 +12,16 @@ import (
 	jsonHelper "whatsapp_clone/internal/helpers/json"
 )
 
+
 func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request) {
+	userId, err := app.GetUserId(r)
+	if err != nil {
+		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	var input struct {
-		Participants []string `json:"participants"`
+		ReceiverUsername string `json:"receiver_username"`
 	}
 
 	if err := jsonHelper.DeSerialize(r.Body, 10000, &input); err != nil {
@@ -21,45 +29,49 @@ func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	participants, err := getParticipants(input.Participants)
+	receiverUserId, err := app.Models.User.GetUserInstanceByUsername(input.ReceiverUsername)
 	if err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err = app.Models.Chat.CreateChatInstance(participants, nil); err != nil {
+	var participants = []primitive.ObjectID{userId, receiverUserId.Id}
+
+	chatId, err := app.Models.Chat.CheckChatExists(participants)
+	if err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
+	}
+	
+	if chatId == "" {
+		chatId, err = app.Models.Chat.CreateChatInstance(participants, nil)
+		if err != nil {
+			ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+	}
+
+	data := map[string]any{
+		"chat_id": chatId,
 	}
 
 	w.WriteHeader(http.StatusCreated)
-}
-
-func getParticipants(participants []string) ([]primitive.ObjectID, error) {
-	if len(participants) != 2 {
-		return nil, errors.New("participants number must be 2")
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
 	}
-
-	firstUser, err := convertHelper.StringToObjectId(participants[0])
-	if err != nil {
-		return nil, err
-	}
-
-	secondUser, err := convertHelper.StringToObjectId(participants[1])
-	if err != nil {
-		return nil, err
-	}
-
-	idSlice := []primitive.ObjectID{firstUser, secondUser}
-	return idSlice, nil
 }
 
 func (app *Application) ChatSocketHandler(w http.ResponseWriter, r *http.Request) {
-	chatID := r.URL.Query().Get("chat_id")
-	userID := r.URL.Query().Get("user_id")
+	userID, err := app.GetUserId(r)
+	if err != nil {
+		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
-	if chatID == "" || userID == "" {
-		ServerErrorResponse(w, http.StatusBadRequest, "chat_id and user_id are both required parameters")
+	chatID := r.URL.Query().Get("chat_id")
+	if chatID == "" {
+		ServerErrorResponse(w, http.StatusBadRequest, "chat_id is a required parameter")
 		return
 	}
 
@@ -69,10 +81,10 @@ func (app *Application) ChatSocketHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	app.addWebSocketConn(chatID, userID, conn)
+	app.addWebSocketConn(chatID, userID.Hex(), conn)
 
 	go func() {
-		if err = app.handleWebSocketConnection(conn, chatID, userID); err != nil {
+		if err = app.handleWebSocketConnection(conn, chatID, userID.Hex()); err != nil {
 			ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}

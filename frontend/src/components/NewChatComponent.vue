@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import axiosInstance from "../utils/axiosInstance";
-
+import { useToast } from "vue-toastification";
 import sharedState from "../sharedState";
+
+const toast = useToast();
 
 const closeNewChatPage = () => {
     sharedState.isNewChatPageOpen = false;
 };
+
+const userInfo = reactive({
+    username: "",
+    profile_url: "",
+});
 
 const searchText = ref("");
 const search = async () => {
@@ -21,13 +28,21 @@ const search = async () => {
         })
         .then((resp) => {
             if (resp.status === 200) {
-                console.log(resp.data);
+                userInfo["username"] = resp.data.username;
+                userInfo["profile_url"] =
+                    import.meta.env.VITE_BASE_BACKEND_URL +
+                    resp.data.profile_url;
             }
         })
-        .catch((error) => {
-            console.error("Error: ", error);
+        .catch(() => {
+            toast.error("Username doesnt exist");
         });
 };
+
+async function openChat() {
+    sharedState.isNewChatPageOpen = true;
+    sharedState.NewChatUsername = userInfo.username;
+}
 </script>
 <template>
     <div
@@ -78,17 +93,26 @@ const search = async () => {
             </button>
         </div>
     </div>
-    <!-- <div class="select-none flex flex-col w-full">
-        <div class="flex border-b border-gray-200 flex-row w-full h-[72px] cursor-pointer
-            justify-start items-center hover:bg-[#f5f6f6] pl-3">
-            <img class="w-[49px] h-[49px] rounded-full object-cover" src="../../barcelona-logo.jpg" alt="">
+    <div class="select-none flex flex-col w-full">
+        <div
+            @click="openChat"
+            v-if="userInfo.profile_url"
+            class="flex border-b border-gray-200 flex-row w-full h-[72px] cursor-pointer justify-start items-center hover:bg-[#f5f6f6] pl-3"
+        >
+            <img
+                class="w-[49px] h-[49px] rounded-full object-cover"
+                :src="userInfo.profile_url"
+                alt=""
+            />
             <div class="flex flex-col ml-4 w-full">
                 <div class="flex flex-row w-full">
-                    <p class="font-normal text-[17px]">Friend..</p>
-                    <span class="ml-auto mr-3 font-normal text-[12px] text-gray-500">Yesterday</span>
+                    <p class="font-normal text-[17px]">
+                        {{ userInfo.username }}
+                    </p>
+                    <!-- <span class="ml-auto mr-3 font-normal text-[12px] text-gray-500">Yesterday</span> -->
                 </div>
-                <p class="font-normal text-[14px] text-gray-600">Your last chat...</p>
+                <!-- <p class="font-normal text-[14px] text-gray-600">Your last chat...</p> -->
             </div>
         </div>
-    </div> -->
+    </div>
 </template>

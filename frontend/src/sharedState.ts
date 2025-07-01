@@ -5,6 +5,7 @@ const sharedState: Reactive<any> = reactive({
     backendUrl: "http://localhost:8000",
     isArchiveChatOpen: false,
     isNewChatPageOpen: false,
+    NewChatUsername: "",
     isTextStatusCreationOpen: false,
     isUserEditOpen: false,
 });

@@ -25,8 +25,7 @@ func (app *Application) handleWebSocketConnection(conn *websocket.Conn, chatID, 
 	app.addWebSocketConn(chatID, userID, conn)
 
 	for {
-		err := app.HandleIncomingMessages(chatID, userID, conn)
-		if err != nil {
+		if err := app.HandleIncomingMessages(chatID, userID, conn); err != nil {
 			return err
 		}
 	}

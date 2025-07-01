@@ -22,7 +22,7 @@ type Message struct {
 
 const messageCollection = "messages"
 
-func (m *MessageModel) InsertMessageInstance(chatId, senderId primitive.ObjectID, payload []byte) error {
+func (m *MessageModel) InsertMessageInstance(chatId, senderId primitive.ObjectID, payload []byte) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -33,8 +33,12 @@ func (m *MessageModel) InsertMessageInstance(chatId, senderId primitive.ObjectID
 		CreatedAt:   time.Now(),
 	}
 
-	_, err := m.DB.Collection(messageCollection).InsertOne(ctx, msg)
-	return err
+	result, err := m.DB.Collection(messageCollection).InsertOne(ctx, msg)
+	if err != nil {
+		return "", err
+	}
+
+	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 func (m *MessageModel) UpdateMessageInstance(msgId primitive.ObjectID, newText []byte) error {

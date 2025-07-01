@@ -58,16 +58,19 @@ func NewApp() (*Application, error) {
 
 	srv := app.setupHttpServer()
 	app.Server = srv
-	
+
 	return app, nil
 }
 
 func (app *Application) setupHttpServer() *http.Server {
 	port := getPortHTTP()
 
+	router := routes(app)
+	handler := CORSMiddleware(router)
+	
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
-		Handler: routes(app),
+		Handler: handler,
 	}
 }
 

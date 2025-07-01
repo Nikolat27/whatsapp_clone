@@ -20,8 +20,8 @@ type User struct {
 	Username      string             `bson:"username"`
 	Password      string             `bson:"password"`
 	Name          string             `bson:"name"`
-	about         string             `bson:"about"`
-	profilePicUrl string             `bson:"profile_pic_url"`
+	About         string             `bson:"about"`
+	ProfilePicUrl string             `bson:"profile_url"`
 	CreatedAt     time.Time          `bson:"createdAt"`
 }
 
@@ -46,7 +46,7 @@ func (u *UserModel) CreateUserInstance(username, password string) error {
 	return err
 }
 
-func (u *UserModel) GetUserInstance(username string) (*User, error) {
+func (u *UserModel) GetUserInstanceByUsername(username string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -56,12 +56,35 @@ func (u *UserModel) GetUserInstance(username string) (*User, error) {
 
 	var user User
 	err := u.DB.Collection(userCollection).FindOne(ctx, filter).Decode(&user)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, errors.New("this username does not exist")
+	}
+	
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil
-		}
 		return nil, fmt.Errorf("failed to find user '%s': %w", username, err)
 	}
+	
+	return &user, nil
+}
+
+func (u *UserModel) GetUserInstanceById(id primitive.ObjectID) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"_id": id,
+	}
+
+	var user User
+	err := u.DB.Collection(userCollection).FindOne(ctx, filter).Decode(&user)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user '%s': %w", id, err)
+	}
+
 	return &user, nil
 }
 

@@ -1,12 +1,14 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"whatsapp_clone/internal/errors"
 	authHelper "whatsapp_clone/internal/helpers/auth"
 	convertHelper "whatsapp_clone/internal/helpers/convert"
@@ -14,16 +16,7 @@ import (
 )
 
 func (app *Application) GetUserChatsHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		UserId string `json:"user_id"`
-	}
-
-	if err := jsonHelper.DeSerialize(r.Body, 10000, &input); err != nil {
-		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	userId, err := convertHelper.StringToObjectId(input.UserId)
+	userId, err := app.GetUserId(r)
 	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
@@ -58,15 +51,15 @@ func (app *Application) UpdateUserHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	updateDoc := bson.M{}
-	
+
 	if input.Username != "" {
 		updateDoc["username"] = input.Username
 	}
-	
+
 	if input.Name != "" {
 		updateDoc["name"] = input.Name
 	}
-	
+
 	if input.About != "" {
 		updateDoc["about"] = input.About
 	}
@@ -85,46 +78,157 @@ func (app *Application) UpdateUserHandler(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 }
 
-func (app *Application) SearchUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) SearchUserByUsernameHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Username string `json:"username"`
 	}
 
-	err := jsonHelper.DeSerialize(r.Body, 10000, &input)
+	if err := jsonHelper.DeSerialize(r.Body, 10000, &input); err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := app.Models.User.GetUserInstanceByUsername(input.Username)
 	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	data := map[string]any{
+		"username":    input.Username,
+		"user_id":     user.Id,
+		"profile_url": user.ProfilePicUrl,
+	}
+
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		errors.ServerErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+}
+
+func (app *Application) SearchUserByIdHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		UserId string `json:"user_id"`
+	}
+
+	if err := jsonHelper.DeSerialize(r.Body, 10000, &input); err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userObjectId, err := convertHelper.StringToObjectId(input.UserId)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := app.Models.User.GetUserInstanceById(userObjectId)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	data := map[string]any{
+		"username":    user.Name,
+		"user_id":     input.UserId,
+		"profile_url": user.ProfilePicUrl,
+	}
+
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		errors.ServerErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 }
 
 func (app *Application) UploadProfilePicHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseMultipartForm(10 << 20)
-
-	file, fileHeader, err := r.FormFile("profilePic")
+	// Parse multipart form with 10MB max memory
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		http.Error(w, "Failed to parse multipart form: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve the file from posted form-data ("profile_picture")
+	file, fileHeader, err := r.FormFile("profile_picture")
+	if err != nil {
+		http.Error(w, "Error retrieving the file: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	fmt.Printf("Uploaded File: %+v\n", fileHeader.Filename)
-	fmt.Printf("File Size: %+v\n", fileHeader.Size)
-	fmt.Printf("MIME Header: %+v\n", fileHeader.Header)
-
-	// Read file data if needed (e.g., save to disk or upload to cloud)
+	// Read the file content
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
-		http.Error(w, "Error reading the file", http.StatusInternalServerError)
+		http.Error(w, "Error reading the file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Save the file, e.g., to disk
-	err = os.WriteFile("./uploads/"+fileHeader.Filename, fileBytes, 0644)
+	// Sanitize the file name to prevent directory traversal attacks
+	filename := filepath.Base(fileHeader.Filename)
+
+	// Ensure the upload directory exists (relative to your app working dir)
+	uploadDir := "./uploads"
+	err = os.MkdirAll(uploadDir, os.ModePerm)
 	if err != nil {
-		http.Error(w, "Unable to save the file", http.StatusInternalServerError)
+		http.Error(w, "Unable to create upload directory: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Save the file to disk
+	fullPath := filepath.Join(uploadDir, filename)
+	fmt.Println(fullPath)
+
+	err = os.WriteFile(fullPath, fileBytes, 0644)
+	if err != nil {
+		http.Error(w, "Unable to save the file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	userId, err := app.GetUserId(r)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	updates := bson.M{
+		"profile_url": fullPath,
+	}
+
+	err = app.Models.User.UpdateUserInstance(userId, updates)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (app *Application) GetUserInfoHandler(w http.ResponseWriter, r *http.Request) {
+	userId, err := app.GetUserId(r)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := app.Models.User.GetUserInstanceById(userId)
+	if err != nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	data := map[string]any{
+		"username":    user.Username,
+		"user_id":     user.Id,
+		"about":       user.About,
+		"name":        user.Name,
+		"profile_url": user.ProfilePicUrl,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		errors.ServerErrorResponse(w, http.StatusInternalServerError, err.Error())
+	}
 }
 
 func (app *Application) GetUserId(r *http.Request) (primitive.ObjectID, error) {

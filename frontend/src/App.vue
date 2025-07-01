@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 import axiosInstance from "./utils/axiosInstance";
-
+import { useUserStore } from "./stores/user";
+import sharedState from "./sharedState";
 import SideBarComponent from "./components/SideBarComponent.vue";
+import ChatPageComponent from "./components/ChatPageComponent.vue";
 import ChannelPageComponent from "./components/ChannelPageComponent.vue";
 
 const isUserAuthenticated = ref(false);
 
-function checkAuth() {
+async function checkAuth() {
     axiosInstance.get("/auth/check").then((resp) => {
         if (resp.status === 200) {
             isUserAuthenticated.value = true;
@@ -18,8 +20,16 @@ function checkAuth() {
     });
 }
 
-onMounted(() => {
-    checkAuth();
+const showChatPage = ref(false);
+
+watch(sharedState, () => {
+    if (sharedState.isNewChatPageOpen && sharedState.NewChatUsername) {
+        showChatPage.value = true;
+    }
+});
+
+onMounted(async () => {
+    await checkAuth();
 });
 </script>
 <template>
@@ -36,8 +46,11 @@ onMounted(() => {
                 <router-view></router-view>
             </div>
             <div class="flex flex-col w-[66%] h-full relative">
-                <!-- <ChatPageComponent></ChatPageComponent> -->
-                <ChannelPageComponent></ChannelPageComponent>
+                <ChatPageComponent
+                    v-if="showChatPage"
+                    :username="sharedState.NewChatUsername"
+                ></ChatPageComponent>
+                <!-- <ChannelPageComponent></ChannelPageComponent> -->
             </div>
         </div>
     </div>

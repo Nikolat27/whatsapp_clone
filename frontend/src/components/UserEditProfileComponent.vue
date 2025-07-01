@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { Ref } from "vue";
+import { ref, onMounted, Ref } from "vue";
 import sharedState from "../sharedState";
 import axiosInstance from "../utils/axiosInstance";
 import { useToast } from "vue-toastification";
+import { useUserStore } from "../stores/user";
 
 const toast = useToast();
 
+const userProfileUrl = ref("");
 const fileInputRef = ref(null);
 const userProfileFile: Ref = ref(null);
 const temporaryProfileImage: Ref<string> = ref(null);
@@ -18,24 +19,14 @@ const uploadUserProfilePicture = (event: any) => {
     temporaryProfileImage.value = URL.createObjectURL(userProfileFile.value);
 
     const formData = new FormData();
-    console.log(userProfileFile.value);
-    formData.append("profilePicture", userProfileFile.value);
+    formData.append("profile_picture", userProfileFile.value);
 
-    axios
-        .put(`${sharedState.backendUrl}/users/update-profile`, formData, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-        .then((response) => {
-            if (response.status === 202) {
-                console.log(response);
-            }
-        })
-        .catch((error) => console.error(error.response.error));
+    axiosInstance.put("/users/update-profile", formData).then((resp) => {
+        window.location.reload();
+    });
 };
 
-const editUsernameText: Ref<string> = ref("admin");
+const editUsernameText: Ref<string> = ref("");
 const isEditUsernameModeOn: Ref<boolean> = ref(false);
 const toggleEditUsernameMode = () => {
     if (isEditUsernameModeOn.value && editUsernameText.value.length > 1) {
@@ -46,7 +37,7 @@ const toggleEditUsernameMode = () => {
     }
 };
 
-const editNameText: Ref<string> = ref("Sam");
+const editNameText: Ref<string> = ref("");
 const isEditNameModeOn: Ref<boolean> = ref(false);
 const toggleEditNameMode = () => {
     if (isEditNameModeOn.value && editNameText.value.length > 1) {
@@ -57,7 +48,7 @@ const toggleEditNameMode = () => {
     }
 };
 
-const editAboutText: Ref<string> = ref("Trying to improve");
+const editAboutText: Ref<string> = ref("");
 const isEditAboutModeOn: Ref<boolean> = ref(false);
 const toggleEditAboutMode = () => {
     if (isEditAboutModeOn.value && editAboutText.value.length > 1) {
@@ -94,6 +85,34 @@ async function applyChanges() {
             toast.error(err);
         });
 }
+
+async function getUserInfo() {
+    let username = userStore.user.username;
+    if (username) {
+        editUsernameText.value = username;
+    }
+
+    let name = userStore.user.name;
+    if (name) {
+        editNameText.value = name;
+    }
+
+    let about = userStore.user.about;
+    if (about) {
+        editAboutText.value = about;
+    }
+
+    let profileUrl = userStore.user.profile_url;
+    if (profileUrl) {
+        userProfileUrl.value = profileUrl;
+    }
+}
+
+const userStore = useUserStore();
+
+onMounted(() => {
+    getUserInfo();
+});
 </script>
 
 <template>
@@ -123,7 +142,9 @@ async function applyChanges() {
                 draggable="false"
                 class="w-full h-full rounded-full object-cover"
                 :src="
-                    temporaryProfileImage
+                    userProfileUrl
+                        ? userProfileUrl
+                        : temporaryProfileImage
                         ? temporaryProfileImage
                         : '../../barcelona-logo.jpg'
                 "
@@ -136,7 +157,7 @@ async function applyChanges() {
     >
         <span class="text-[14px] font-normal text-green-700">Username</span>
         <div class="w-[94%] flex flex-row">
-            <span v-if="!isEditUsernameModeOn">admin</span>
+            <span v-if="!isEditUsernameModeOn">{{ editUsernameText }}</span>
             <input
                 v-else
                 v-model="editUsernameText"
@@ -190,7 +211,7 @@ async function applyChanges() {
     >
         <span class="text-[14px] font-normal text-green-700">Your name</span>
         <div class="w-[94%] flex flex-row">
-            <span v-if="!isEditNameModeOn">Sam</span>
+            <span v-if="!isEditNameModeOn">{{ editNameText }}</span>
             <input
                 v-else
                 v-model="editNameText"
@@ -249,7 +270,7 @@ async function applyChanges() {
     >
         <span class="text-[14px] font-normal text-green-700">About</span>
         <div class="w-[94%] flex flex-row">
-            <span v-if="!isEditAboutModeOn">Trying to improve</span>
+            <span v-if="!isEditAboutModeOn">{{ editAboutText }}</span>
             <input
                 v-else
                 v-model="editAboutText"

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -8,6 +9,96 @@ import (
 	convertHelper "whatsapp_clone/internal/helpers/convert"
 	jsonHelper "whatsapp_clone/internal/helpers/json"
 )
+
+type Response struct {
+	Id       string
+	MsgText  string
+	ChatId   string
+	SenderId string
+	MsgType  int
+}
+
+func (app *Application) HandleIncomingMessages(chatID, userID string, conn *websocket.Conn) error {
+	messageType, payload, err := conn.ReadMessage()
+	if err != nil {
+		return err
+	}
+
+	var input struct {
+		Text string `json:"msg_text"`
+	}
+
+	if err := json.Unmarshal(payload, &input); err != nil {
+		return err
+	}
+
+	// parsing, encryption and Insert into the db
+	msgId, err := app.saveMessage(chatID, userID, []byte(input.Text))
+	if err != nil {
+		return err
+	}
+
+	var resp = &Response{
+		Id:       msgId,
+		MsgText:  input.Text,
+		ChatId:   chatID,
+		SenderId: userID,
+		MsgType:  messageType,
+	}
+
+	return app.broadcastMessage(resp)
+}
+
+func (app *Application) saveMessage(chatId, senderId string, payload []byte) (string, error) {
+	chatObjectId, err := convertHelper.StringToObjectId(chatId)
+	if err != nil {
+		return "", err
+	}
+
+	senderObjectId, err := convertHelper.StringToObjectId(senderId)
+	if err != nil {
+		return "", err
+	}
+
+	cipherText, err := app.Cipher.Encrypt(payload)
+	if err != nil {
+		return "", err
+	}
+
+	msgId, err := app.Models.Message.InsertMessageInstance(chatObjectId, senderObjectId, cipherText)
+	if err != nil {
+		return "", err
+	}
+
+	return msgId, nil
+}
+
+func (app *Application) broadcastMessage(resp *Response) error {
+	app.ConnMu.Lock()
+	defer app.ConnMu.Unlock()
+
+	connections, ok := app.ChatConnections[resp.ChatId]
+	if !ok {
+		return errors.New("connection does not exist")
+	}
+
+	for userId, conn := range connections {
+		//if UserId == resp.SenderId {
+		//	continue // Sender does not receive his own msg
+		//}
+
+		data, err := json.Marshal(resp)
+		if err != nil {
+			return err
+		}
+
+		if err := conn.WriteMessage(resp.MsgType, data); err != nil {
+			app.removeWebSocketConn(resp.ChatId, userId)
+			return err
+		}
+	}
+	return nil
+}
 
 func (app *Application) DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := readIDParam(r)
@@ -28,63 +119,4 @@ func (app *Application) DeleteMessageHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	jsonHelper.WriteJSON(w, http.StatusOK, "msg deleted successfully")
-}
-
-func (app *Application) HandleIncomingMessages(chatID, userID string, conn *websocket.Conn) error {
-	messageType, payload, err := conn.ReadMessage()
-	if err != nil {
-		return err
-	}
-
-	// parsing, encryption and Insert into the db
-	if err = app.saveMessage(chatID, userID, payload); err != nil {
-		return err
-	}
-
-	return app.broadcastMessage(chatID, userID, messageType, payload)
-}
-
-func (app *Application) saveMessage(chatId, senderId string, payload []byte) error {
-	chatObjectId, err := convertHelper.StringToObjectId(chatId)
-	if err != nil {
-		return err
-	}
-
-	senderObjectId, err := convertHelper.StringToObjectId(senderId)
-	if err != nil {
-		return err
-	}
-
-	cipherText, err := app.Cipher.Encrypt(payload)
-	if err != nil {
-		return err
-	}
-	
-	if err = app.Models.Message.InsertMessageInstance(chatObjectId, senderObjectId, cipherText); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (app *Application) broadcastMessage(chatID, senderId string, msgType int, payload []byte) error {
-	app.ConnMu.Lock()
-	defer app.ConnMu.Unlock()
-
-	connections, ok := app.ChatConnections[chatID]
-	if !ok {
-		return errors.New("connection does not exist")
-	}
-
-	for userId, conn := range connections {
-		if userId == senderId {
-			continue // Sender does not receive their own msg
-		}
-
-		if err := conn.WriteMessage(msgType, payload); err != nil {
-			app.removeWebSocketConn(chatID, userId)
-			return err
-		}
-	}
-	return nil
 }

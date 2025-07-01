@@ -23,7 +23,7 @@ type Chat struct {
 
 const chatCollection = "chats"
 
-func (c *ChatModel) CreateChatInstance(participants []primitive.ObjectID, lastMessage *Message) error {
+func (c *ChatModel) CreateChatInstance(participants []primitive.ObjectID, lastMessage *Message) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -32,9 +32,13 @@ func (c *ChatModel) CreateChatInstance(participants []primitive.ObjectID, lastMe
 		LastMessage:  lastMessage,
 		CreatedAt:    time.Now(),
 	}
-	
-	_, err := c.DB.Collection(chatCollection).InsertOne(ctx, chat)
-	return err
+
+	result, err := c.DB.Collection(chatCollection).InsertOne(ctx, chat)
+	if err != nil {
+		return "", err
+	}
+
+	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 func (c *ChatModel) GetChatInstance(chatId primitive.ObjectID) (*Chat, error) {
@@ -49,8 +53,34 @@ func (c *ChatModel) GetChatInstance(chatId primitive.ObjectID) (*Chat, error) {
 	if err := c.DB.Collection(chatCollection).FindOne(ctx, filter).Decode(&chat); err != nil {
 		return nil, err
 	}
-	
+
 	return &chat, nil
+}
+
+func (c *ChatModel) CheckChatExists(participants []primitive.ObjectID) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"participants": bson.M{
+			"$all": participants,
+		},
+	}
+
+	var output struct {
+		Id primitive.ObjectID `bson:"_id"`
+	}
+
+	err := c.DB.Collection(chatCollection).FindOne(ctx, filter).Decode(&output)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return "", nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return output.Id.Hex(), err
 }
 
 func (c *ChatModel) DeleteChatInstance(id primitive.ObjectID) error {
@@ -65,11 +95,11 @@ func (c *ChatModel) DeleteChatInstance(id primitive.ObjectID) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if res.DeletedCount == 0 {
 		return errors.New("no chat found matching that ID")
 	}
-	
+
 	return nil
 }
 
@@ -85,7 +115,7 @@ func (c *ChatModel) GetUserChats(userId primitive.ObjectID) ([]Chat, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	defer func() {
 		if err := cursor.Close(ctx); err != nil {
 			slog.Error("closing cursor", "error", err)
