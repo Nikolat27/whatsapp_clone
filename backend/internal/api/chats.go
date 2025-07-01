@@ -3,15 +3,14 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"log"
 	"net/http"
 	. "whatsapp_clone/internal/errors"
 	convertHelper "whatsapp_clone/internal/helpers/convert"
 	jsonHelper "whatsapp_clone/internal/helpers/json"
 )
-
 
 func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 	userId, err := app.GetUserId(r)
@@ -42,7 +41,7 @@ func (app *Application) CreateChatHandler(w http.ResponseWriter, r *http.Request
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	
+
 	if chatId == "" {
 		chatId, err = app.Models.Chat.CreateChatInstance(participants, nil)
 		if err != nil {
@@ -91,7 +90,7 @@ func (app *Application) ChatSocketHandler(w http.ResponseWriter, r *http.Request
 	}()
 }
 
-func (app *Application) GetChatHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) GetChatMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		ChatId string `json:"chat_id"`
 	}
@@ -101,19 +100,20 @@ func (app *Application) GetChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(input.ChatId)
 	chatId, err := convertHelper.StringToObjectId(input.ChatId)
 	if err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	chat, err := app.Models.Chat.GetChatInstance(chatId)
+	msgs, err := app.Models.Message.GetAllMessages(chatId)
 	if err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	log.Println(chat.Participants[0].Hex())
+	jsonHelper.WriteJSON(w, http.StatusOK, msgs)
 }
 
 func (app *Application) DeleteChatHandler(w http.ResponseWriter, r *http.Request) {

@@ -129,7 +129,7 @@ func (app *Application) SearchUserByIdHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	data := map[string]any{
-		"username":    user.Name,
+		"username":    user.Username,
 		"user_id":     input.UserId,
 		"profile_url": user.ProfilePicUrl,
 	}

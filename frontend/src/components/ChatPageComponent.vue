@@ -154,6 +154,7 @@ async function getUserInfo() {
 }
 
 let socket: WebSocket;
+let chatId: string;
 
 async function createNewChat() {
     const formData = new FormData();
@@ -165,13 +166,35 @@ async function createNewChat() {
                 "Content-Type": "application/json",
             },
         })
-        .then((resp) => {
+        .then(async (resp) => {
             if (resp.status === 201) {
-                let chatId = resp.data.chat_id;
+                chatId = resp.data.chat_id;
                 if (!chatId) {
                     console.error("no chat id");
                 }
-                connectWebSocket(chatId);
+                await connectWebSocket(chatId);
+                await getChatMessages(chatId);
+            }
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+}
+
+async function getChatMessages(chatId: string) {
+    const formData = new FormData();
+    formData.append("chat_id", chatId);
+
+    await axiosInstance
+        .post("/chats/get/", formData, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+        .then((resp) => {
+            if (resp.status === 200) {
+                console.log(resp.data);
+                Object.assign(messages, resp.data);
             }
         })
         .catch((err) => {
@@ -194,7 +217,7 @@ function receiveWebSocketMsg(event) {
     console.log("SenderID: ", message.sender_id);
 }
 
-function connectWebSocket(chatId: string) {
+async function connectWebSocket(chatId: string) {
     const baseUrl = import.meta.env.VITE_BACKEND_URL;
     const wsUrl =
         baseUrl.replace(/^http/, "ws") + `chats/open-socket?chat_id=${chatId}`;

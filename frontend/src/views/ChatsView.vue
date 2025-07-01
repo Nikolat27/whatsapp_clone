@@ -41,6 +41,11 @@ const toggleArchiveChat = () => {
     sharedState.isArchiveChatOpen = !sharedState.isArchiveChatOpen;
 };
 
+async function openChat(username: string) {
+    sharedState.isNewChatPageOpen = true;
+    sharedState.NewChatUsername = username;
+}
+
 watch(
     () => sharedState.isArchiveChatOpen,
     (newVal) => {
@@ -87,7 +92,9 @@ async function getReceiverUserInfo(userId: string) {
         })
         .then((resp) => {
             if (resp.status === 200) {
-                resp.data.profile_url = import.meta.env.VITE_BASE_BACKEND_URL + resp.data.profile_url
+                resp.data.profile_url =
+                    import.meta.env.VITE_BASE_BACKEND_URL +
+                    resp.data.profile_url;
                 return resp.data;
             }
         })
@@ -342,14 +349,16 @@ onMounted(async () => {
                 :key="chat._id"
                 class="flex border-b border-gray-200 flex-row w-full h-[72px] cursor-pointer justify-start items-center hover:bg-[#f5f6f6] pl-3"
             >
-                <img
+                <img @click="openChat(chat.receiver.username)"
                     class="w-[49px] h-[49px] rounded-full object-cover"
                     :src="chat.receiver.profile_url"
                     alt=""
                 />
                 <div class="flex flex-col ml-4 w-full">
-                    <div class="flex flex-row w-full">
-                        <p class="font-normal text-[17px]">{{ chat.receiver.username }}</p>
+                    <div @click="openChat(chat.receiver.username)" class="flex flex-row w-full">
+                        <p class="font-normal text-[17px]">
+                            {{ chat.receiver.username }}
+                        </p>
                         <span
                             class="ml-auto mr-3 font-normal text-[12px] text-gray-500"
                             >{{ chat.created_at }}</span

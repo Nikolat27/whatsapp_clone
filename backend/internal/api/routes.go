@@ -30,7 +30,7 @@ func routes(app *Application) *httprouter.Router {
 
 	// Chat
 	router.HandlerFunc(http.MethodPost, "/api/chats/create/", app.CreateChatHandler)
-	router.HandlerFunc(http.MethodPost, "/api/chats/get/", app.GetChatHandler)
+	router.HandlerFunc(http.MethodPost, "/api/chats/get/", app.GetChatMessagesHandler)
 	router.HandlerFunc(http.MethodDelete, "/api/chats/delete/:id", app.DeleteChatHandler)
 
 	// Web socket
