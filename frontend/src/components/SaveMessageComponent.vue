@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, onUnmounted } from "vue";
+import { ref, reactive, onMounted, onUnmounted } from "vue";
 import type { Ref, Reactive } from "vue";
 import arrowLeftIcon from "../assets/icons/svg-icons/arrow-left-green.svg";
 import { useToast } from "vue-toastification";
 import EmojiPicker from "vue3-emoji-picker";
 import axiosInstance from "../utils/axiosInstance";
+import { useUserStore } from "../stores/user";
 import { useChatStore } from "../stores/chat";
 
 const toast = useToast();
@@ -47,21 +48,15 @@ const closeSearchBar = () => {
 
 const messageText: Ref<String> = ref("");
 const createNewMessage = (text: String) => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(
-            JSON.stringify({
-                msg_text: text,
-            })
-        );
-    } else {
-        console.error("WebSocket is not connected");
-    }
-
     messageText.value = "";
 };
 
 const handleKeyDown = (event: any) => {
     if (event.key === "Enter") {
+        if (messageText.value.length < 1) {
+            toast.info("You must enter at least 1 word");
+            return;
+        }
         createNewMessage(messageText.value);
     }
 };
@@ -111,80 +106,9 @@ function onSelectEmoji(emoji: any) {
     messageText.value += emoji.i;
 }
 
-const userInfo = reactive({
-    username: "",
-    profile_url: "",
-    user_id: "",
-});
-
-const isLoading = ref(false);
-async function getUserInfo(username: string) {
-    isLoading.value = true;
-
-    let formData = new FormData();
-    formData.append("username", username);
-
-    await axiosInstance
-        .post("/users/search/", formData, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-        .then((resp) => {
-            if (resp.status === 200) {
-                userInfo["username"] = resp.data.username;
-                userInfo["user_id"] = resp.data.user_id;
-                userInfo["profile_url"] =
-                    import.meta.env.VITE_BASE_BACKEND_URL +
-                    resp.data.profile_url;
-            }
-        })
-        .catch(() => {
-            toast.error("Username doesnt exist");
-        })
-        .finally(() => (isLoading.value = false));
-}
-
-let socket: WebSocket;
-let chatId: string;
-
-async function createNewChat() {
-    const formData = new FormData();
-    formData.append("receiver_username", userInfo.username);
-
+function openSaveMessage() {
     axiosInstance
-        .post("/chats/create/", formData, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-        .then(async (resp) => {
-            if (resp.status === 201) {
-                chatId = resp.data.chat_id;
-                if (!chatId) {
-                    console.error("no chat id");
-                    return;
-                }
-
-                await connectWebSocket(chatId);
-                await getChatMessages(chatId);
-            }
-        })
-        .catch((err) => {
-            console.error(err);
-        });
-}
-
-async function getChatMessages(chatId: string) {
-    const formData = new FormData();
-    formData.append("chat_id", chatId);
-
-    await axiosInstance
-        .post("/chats/get/", formData, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
+        .post("/users/get/save-messages/")
         .then((resp) => {
             if (resp.status === 200) {
                 Object.assign(messages, resp.data);
@@ -195,62 +119,16 @@ async function getChatMessages(chatId: string) {
         });
 }
 
-function receiveWebSocketMsg(event) {
-    const data = JSON.parse(event.data);
-
-    const message = {
-        id: data.Id,
-        msg_content: data.MsgText,
-        sender_id: data.SenderId,
-    };
-
-    messages.push(message);
-
-    console.log("UserID: ", userInfo.user_id);
-    console.log("SenderID: ", message.sender_id);
-}
-
-async function connectWebSocket(chatId: string) {
-    const baseUrl = import.meta.env.VITE_BACKEND_URL;
-    const wsUrl =
-        baseUrl.replace(/^http/, "ws") + `chats/open-socket?chat_id=${chatId}`;
-
-    socket = new WebSocket(wsUrl);
-
-    socket.onopen = () => {
-        console.log("WebSocket connected");
-    };
-
-    socket.onmessage = (event) => {
-        receiveWebSocketMsg(event);
-    };
-
-    socket.onclose = () => {
-        console.log("WebSocket closed");
-    };
-
-    socket.onerror = (err) => {
-        console.error("WebSocket error:", err);
-    };
-}
-
+const userStore = useUserStore();
 const chatStore = useChatStore();
 
-async function mountPage(username: string) {
-    await getUserInfo(username);
-    await createNewChat();
-}
-
-watch(chatStore, () => {
-    mountPage(chatStore.chat.username);
-});
-
 onMounted(async () => {
+    openSaveMessage();
     window.addEventListener("keydown", handleKeyDown);
 });
 
 onUnmounted(() => {
-    chatStore.chat.openChat = false;
+    chatStore.chat.openSaveMessage = false;
 });
 </script>
 <template>
@@ -353,11 +231,11 @@ onUnmounted(() => {
     >
         <img
             class="w-10 h-10 rounded-full"
-            :src="userInfo.profile_url"
+            :src="userStore.user.profile_url"
             alt=""
         />
         <div class="flex flex-col ml-2">
-            <p class="text-[16px] font-normal">{{ userInfo.username }}</p>
+            <p class="text-[16px] font-normal">Saved Messages</p>
             <span class="text-[13px] font-normal text-gray-500"
                 >Last seen on ...</span
             >
@@ -506,18 +384,10 @@ onUnmounted(() => {
         <div
             v-for="message in messages"
             :key="message.id"
-            :class="[
-                message.sender_id !== userInfo.user_id ? 'justify-end' : '',
-            ]"
             class="message-out w-full h-auto flex mb-[1px]"
         >
             <div
-                :class="[
-                    message.sender_id !== userInfo.user_id
-                        ? 'bg-[#d9fdd3]'
-                        : 'bg-white',
-                ]"
-                class="custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal px-2 h-full min-h-full rounded-2xl items-center"
+                class="bg-white custom-shadow-inset2 pt-1 pb-2 flex flex-col flex-wrap max-w-[603px] w-auto font-normal px-2 h-full min-h-full rounded-2xl items-center"
             >
                 <p class="user-text text-[14.2px] flex-wrap">
                     {{ message.msg_content }}
@@ -542,12 +412,7 @@ onUnmounted(() => {
                     </button>
                     <div
                         v-if="openChatMessageOptions.includes(message.id)"
-                        :class="[
-                            message.sender_id !== userInfo.user_id
-                                ? 'right-[20px]'
-                                : 'left-[74px]',
-                        ]"
-                        class="absolute top-4 w-[192px] custom-shadow-inset bg-white h-auto py-3 flex flex-col z-50"
+                        class="left-[74px] absolute top-4 w-[192px] custom-shadow-inset bg-white h-auto py-3 flex flex-col z-50"
                     >
                         <div
                             class="w-full h-[40px] cursor-pointer hover:bg-[#f5f6f6] pl-6 flex items-center"
@@ -583,7 +448,7 @@ onUnmounted(() => {
         </div>
     </div>
     <div
-        class="self-end w-full min-h-[132px] h-auto flex flex-row bg-[#f0f2f5] items-center"
+        class="w-full min-h-[62px] h-auto flex flex-row bg-[#f0f2f5] items-center"
     >
         <button class="pl-6 cursor-pointer mr-4">
             <svg

@@ -1,36 +1,21 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { watch, ref } from "vue";
 
-import axiosInstance from "./utils/axiosInstance";
-import { useUserStore } from "./stores/user";
-import sharedState from "./sharedState";
 import SideBarComponent from "./components/SideBarComponent.vue";
 import ChatPageComponent from "./components/ChatPageComponent.vue";
-import ChannelPageComponent from "./components/ChannelPageComponent.vue";
+import { useUserStore } from "./stores/user";
+import { useChatStore } from "./stores/chat";
 
-const isUserAuthenticated = ref(false);
+const userStore = useUserStore();
+const chatStore = useChatStore();
 
-async function checkAuth() {
-    axiosInstance.get("/auth/check").then((resp) => {
-        if (resp.status === 200) {
-            isUserAuthenticated.value = true;
-        } else {
-            isUserAuthenticated.value = false;
-        }
-    });
-}
-
-const showChatPage = ref(false);
-
-watch(sharedState, () => {
-    if (sharedState.isNewChatPageOpen && sharedState.NewChatUsername) {
-        showChatPage.value = true;
+const showChat = ref(false);
+watch(
+    () => chatStore.chat?.openChat,
+    (newVal) => {
+        showChat.value = !!newVal;
     }
-});
-
-onMounted(async () => {
-    await checkAuth();
-});
+);
 </script>
 <template>
     <div class="w-[83.3%] h-full absolute top-[28px] left-[110px]">
@@ -39,7 +24,7 @@ onMounted(async () => {
                 class="flex flex-col flex-basis-[58.8px] flex-shrink-0 min-w-[58.8px] w-[4%] h-full bg-[#f0f2f5] justify-start items-center pt-2 gap-y-4 border-r border-gray-300"
             >
                 <SideBarComponent
-                    :isUserAuthenticated="isUserAuthenticated"
+                    :isUserAuthenticated="userStore.isAuthenticated"
                 ></SideBarComponent>
             </div>
             <div class="flex flex-col max-w-[30%] w-[30%] h-full bg-white">
@@ -47,8 +32,7 @@ onMounted(async () => {
             </div>
             <div class="flex flex-col w-[66%] h-full relative">
                 <ChatPageComponent
-                    v-if="showChatPage"
-                    :username="sharedState.NewChatUsername"
+                    v-if="userStore.isAuthenticated && showChat"
                 ></ChatPageComponent>
                 <!-- <ChannelPageComponent></ChannelPageComponent> -->
             </div>

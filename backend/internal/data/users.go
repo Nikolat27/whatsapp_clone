@@ -27,13 +27,13 @@ type User struct {
 
 const userCollection = "users"
 
-func (u *UserModel) CreateUserInstance(username, password string) error {
+func (u *UserModel) CreateUserInstance(username, password string) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	hashedPassword, err := passwordHelper.HashPassword(password)
 	if err != nil {
-		return fmt.Errorf("failed to hash password %s", err)
+		return primitive.NilObjectID, fmt.Errorf("failed to hash password %s", err)
 	}
 
 	user := User{
@@ -42,8 +42,8 @@ func (u *UserModel) CreateUserInstance(username, password string) error {
 		CreatedAt: time.Now().UTC(),
 	}
 
-	_, err = u.DB.Collection(userCollection).InsertOne(ctx, user)
-	return err
+	result, err := u.DB.Collection(userCollection).InsertOne(ctx, user)
+	return result.InsertedID.(primitive.ObjectID), nil
 }
 
 func (u *UserModel) GetUserInstanceByUsername(username string) (*User, error) {
@@ -57,13 +57,13 @@ func (u *UserModel) GetUserInstanceByUsername(username string) (*User, error) {
 	var user User
 	err := u.DB.Collection(userCollection).FindOne(ctx, filter).Decode(&user)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, errors.New("this username does not exist")
+		return nil, nil
 	}
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user '%s': %w", username, err)
 	}
-	
+
 	return &user, nil
 }
 
@@ -124,7 +124,7 @@ func (u *UserModel) DeleteUserInstance(userId primitive.ObjectID) error {
 	return nil
 }
 
-func (u *UserModel) SearchUsers(username string) {
+func (u *UserModel) SearchUser(username string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 

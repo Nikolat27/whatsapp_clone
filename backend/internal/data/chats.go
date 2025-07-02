@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log/slog"
+	"sort"
 	"time"
 )
 
@@ -15,10 +16,10 @@ type ChatModel struct {
 }
 
 type Chat struct {
-	Id           primitive.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
-	Participants []primitive.ObjectID `bson:"participants" json:"participants,omitempty"`
-	LastMessage  *Message             `bson:"last_message" json:"last_message,omitempty"`
-	CreatedAt    time.Time            `bson:"created_at" json:"created_at,omitempty"`
+	Id             primitive.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
+	Participants   []primitive.ObjectID `bson:"participants" json:"participants,omitempty"`
+	LastMessage    *Message             `bson:"last_message" json:"last_message,omitempty"`
+	CreatedAt      time.Time            `bson:"created_at" json:"created_at,omitempty"`
 }
 
 const chatCollection = "chats"
@@ -28,9 +29,9 @@ func (c *ChatModel) CreateChatInstance(participants []primitive.ObjectID, lastMe
 	defer cancel()
 
 	var chat = &Chat{
-		Participants: participants,
-		LastMessage:  lastMessage,
-		CreatedAt:    time.Now(),
+		Participants:   participants,
+		LastMessage:    lastMessage,
+		CreatedAt:      time.Now(),
 	}
 
 	result, err := c.DB.Collection(chatCollection).InsertOne(ctx, chat)
@@ -61,10 +62,12 @@ func (c *ChatModel) CheckChatExists(participants []primitive.ObjectID) (string, 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	sort.Slice(participants, func(i, j int) bool {
+		return participants[i].Hex() < participants[j].Hex()
+	})
+
 	filter := bson.M{
-		"participants": bson.M{
-			"$all": participants,
-		},
+		"participants": participants,
 	}
 
 	var output struct {

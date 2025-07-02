@@ -13,7 +13,11 @@ const app = createApp(App);
 app.use(createPinia());
 
 const userStore = useUserStore();
-await userStore.fetchUser();
+const isAuthenticated = await userStore.checkAuth();
+
+if (isAuthenticated) {
+    await userStore.fetchUser();
+}
 
 app.use(router);
 app.use(Toast, {

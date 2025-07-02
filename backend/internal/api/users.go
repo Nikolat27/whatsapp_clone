@@ -210,9 +210,19 @@ func (app *Application) GetUserInfoHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if userId == primitive.NilObjectID {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, "user id does not exist")
+		return
+	}
+
 	user, err := app.Models.User.GetUserInstanceById(userId)
 	if err != nil {
-		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if user == nil {
+		errors.ServerErrorResponse(w, http.StatusBadRequest, "user does not exist")
 		return
 	}
 
@@ -235,6 +245,10 @@ func (app *Application) GetUserId(r *http.Request) (primitive.ObjectID, error) {
 	token, err := authHelper.GetUserAuthToken(r)
 	if err != nil {
 		return primitive.NilObjectID, err
+	}
+
+	if token == nil {
+		return primitive.NilObjectID, nil
 	}
 
 	userId := app.Rli.Get(string(token)).Val()

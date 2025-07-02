@@ -10,32 +10,30 @@ import (
 	"time"
 )
 
-type MessageModel struct {
+type SaveMessageModel struct {
 	DB *mongo.Database
 }
 
-type Message struct {
+type SaveMessage struct {
 	Id          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	ChatId      primitive.ObjectID `bson:"chat_id" json:"chat_id"`
-	SenderId    primitive.ObjectID `bson:"sender_id" json:"sender_id"`
+	UserId      primitive.ObjectID `bson:"user_id" json:"user_id"`
 	TextContent string             `bson:"text_content"  json:"msg_content"`
 	CreatedAt   time.Time          `bson:"created_at" json:"created_at"`
 }
 
-const messageCollection = "messages"
+const saveMessageCollection = "save_message"
 
-func (m *MessageModel) InsertMessageInstance(chatId, senderId primitive.ObjectID, payload []byte) (string, error) {
+func (m *SaveMessageModel) InsertSaveMessageInstance(userId primitive.ObjectID, payload []byte) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	msg := Message{
-		ChatId:      chatId,
-		SenderId:    senderId,
+	msg := SaveMessage{
+		UserId:      userId,
 		TextContent: string(payload),
 		CreatedAt:   time.Now(),
 	}
 
-	result, err := m.DB.Collection(messageCollection).InsertOne(ctx, msg)
+	result, err := m.DB.Collection(saveMessageCollection).InsertOne(ctx, msg)
 	if err != nil {
 		return "", err
 	}
@@ -43,7 +41,7 @@ func (m *MessageModel) InsertMessageInstance(chatId, senderId primitive.ObjectID
 	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
-func (m *MessageModel) UpdateMessageInstance(msgId primitive.ObjectID, newText []byte) error {
+func (m *SaveMessageModel) UpdateSaveMessageInstance(msgId primitive.ObjectID, newText []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -57,11 +55,11 @@ func (m *MessageModel) UpdateMessageInstance(msgId primitive.ObjectID, newText [
 		},
 	}
 
-	_, err := m.DB.Collection(messageCollection).UpdateOne(ctx, filter, update)
+	_, err := m.DB.Collection(saveMessageCollection).UpdateOne(ctx, filter, update)
 	return err
 }
 
-func (m *MessageModel) DeleteMessageInstance(msgId primitive.ObjectID) error {
+func (m *SaveMessageModel) DeleteSaveMessageInstance(msgId primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -69,31 +67,31 @@ func (m *MessageModel) DeleteMessageInstance(msgId primitive.ObjectID) error {
 		"_id": msgId,
 	}
 
-	_, err := m.DB.Collection(messageCollection).DeleteOne(ctx, filter)
+	_, err := m.DB.Collection(saveMessageCollection).DeleteOne(ctx, filter)
 	return err
 }
 
-func (m *MessageModel) GetAllMessages(chatId primitive.ObjectID) ([]Message, error) {
+func (m *SaveMessageModel) GetAllSaveMessages(userId primitive.ObjectID) ([]SaveMessage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	filter := bson.M{
-		"chat_id": chatId,
+		"user_id": userId,
 	}
-	
+
 	findOptions := options.FindOptions{}
 	findOptions.SetLimit(10)
 
 	cursor, err := m.DB.Collection(messageCollection).Find(ctx, filter, &findOptions)
 	if errors.Is(mongo.ErrNoDocuments, err) {
-		return nil, errors.New("no msg found for this chat")
+		return nil, errors.New("no save msg found for this user")
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	var Msgs []Message
+	var Msgs []SaveMessage
 	if err = cursor.All(ctx, &Msgs); err != nil {
 		return nil, err
 	}

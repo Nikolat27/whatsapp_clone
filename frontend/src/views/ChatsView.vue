@@ -10,7 +10,7 @@ import { useUserStore } from "../stores/user";
 // Icons
 import arrowLeftIcon from "/src/assets/icons/svg-icons/arrow-left-green.svg";
 import axiosInstance from "../utils/axiosInstance";
-import axios from "axios";
+import { useChatStore } from "../stores/chat";
 
 const isChatOptionsDivOpen: Ref<Boolean> = ref(false);
 const toggleChatOptionsDiv = () => {
@@ -41,10 +41,7 @@ const toggleArchiveChat = () => {
     sharedState.isArchiveChatOpen = !sharedState.isArchiveChatOpen;
 };
 
-async function openChat(username: string) {
-    sharedState.isNewChatPageOpen = true;
-    sharedState.NewChatUsername = username;
-}
+const chatStore = useChatStore();
 
 watch(
     () => sharedState.isArchiveChatOpen,
@@ -110,10 +107,19 @@ async function getUserChats() {
         .post("/users/chats/")
         .then(async (resp) => {
             if (resp.status === 200) {
+                if (!resp.data) {
+                    return;
+                }
+
                 for (const chat of resp.data) {
                     let receiverId: string = chat.participants.find(
-                        (item) => item !== userStore.user.user_id
+                        (item: any) => item !== userStore.user.user_id
                     );
+
+                    if (!receiverId) {
+                        receiverId = userStore.user.user_id;
+                    }
+
                     const data = await getReceiverUserInfo(receiverId);
 
                     Object.assign(chat, { receiver: data });
@@ -207,7 +213,7 @@ onMounted(async () => {
                 </div>
             </div>
         </div>
-        <div
+        <!-- <div
             class="select-none flex flex-row gap-x-1 ml-3 mt-6 w-[93%] h-[35px] justify-center items-center bg-[#f0f2f5] rounded-lg"
         >
             <button
@@ -270,8 +276,8 @@ onMounted(async () => {
                     ></path>
                 </svg>
             </button>
-        </div>
-        <div class="select-none flex flex-row gap-x-2 pl-3 mt-2">
+        </div> -->
+        <!-- <div class="select-none flex flex-row gap-x-2 pl-3 mt-2">
             <button
                 @click="chatShowingFilter('all')"
                 :class="[
@@ -316,8 +322,8 @@ onMounted(async () => {
             >
                 Groups
             </button>
-        </div>
-        <div
+        </div> -->
+        <!-- <div
             @click="toggleArchiveChat"
             class="cursor-pointer select-none w-full h-[49px] pl-6 mt-2 flex border-b border-gray-200 flex-row justify-start items-center"
         >
@@ -342,20 +348,21 @@ onMounted(async () => {
                 ></span>
             </button>
             <p class="text-[17px] font-normal">Archived</p>
-        </div>
+        </div> -->
         <div v-if="!isChatLoading" class="select-none flex flex-col w-full">
             <div
                 v-for="chat in chats"
                 :key="chat._id"
                 class="flex border-b border-gray-200 flex-row w-full h-[72px] cursor-pointer justify-start items-center hover:bg-[#f5f6f6] pl-3"
             >
-                <img @click="openChat(chat.receiver.username)"
+                <img
+                    @click="chatStore.openChat(chat.receiver.username)"
                     class="w-[49px] h-[49px] rounded-full object-cover"
                     :src="chat.receiver.profile_url"
                     alt=""
                 />
                 <div class="flex flex-col ml-4 w-full">
-                    <div @click="openChat(chat.receiver.username)" class="flex flex-row w-full">
+                    <div class="flex flex-row w-full">
                         <p class="font-normal text-[17px]">
                             {{ chat.receiver.username }}
                         </p>

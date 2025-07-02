@@ -25,7 +25,7 @@ func IsUserAuthenticated(r *http.Request) (bool, error) {
 func GetUserAuthToken(r *http.Request) ([]byte, error) {
 	cookie, err := r.Cookie("authToken")
 	if errors.Is(err, http.ErrNoCookie) {
-		return nil, errors.New("user is not logged in")
+		return nil, nil
 	}
 
 	if err != nil {

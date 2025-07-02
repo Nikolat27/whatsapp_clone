@@ -3,6 +3,7 @@ import { ref, reactive } from "vue";
 import axiosInstance from "../utils/axiosInstance";
 import { useToast } from "vue-toastification";
 import sharedState from "../sharedState";
+import { useChatStore } from "../stores/chat";
 
 const toast = useToast();
 
@@ -39,10 +40,7 @@ const search = async () => {
         });
 };
 
-async function openChat() {
-    sharedState.isNewChatPageOpen = true;
-    sharedState.NewChatUsername = userInfo.username;
-}
+const chatStore = useChatStore();
 </script>
 <template>
     <div
@@ -95,7 +93,7 @@ async function openChat() {
     </div>
     <div class="select-none flex flex-col w-full">
         <div
-            @click="openChat"
+            @click="chatStore.openChat(userInfo.username)"
             v-if="userInfo.profile_url"
             class="flex border-b border-gray-200 flex-row w-full h-[72px] cursor-pointer justify-start items-center hover:bg-[#f5f6f6] pl-3"
         >

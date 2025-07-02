@@ -1,6 +1,7 @@
 package api
 
 import (
+	errorsPkg "errors"
 	"net/http"
 	"time"
 	"whatsapp_clone/internal/errors"
@@ -47,8 +48,9 @@ func (app *Application) RegisterUserHandler(w http.ResponseWriter, r *http.Reque
 		errors.ServerErrorResponse(w, http.StatusBadRequest, "this username exists")
 		return
 	}
-
-	if err = app.Models.User.CreateUserInstance(input.Username, input.Password); err != nil {
+	
+	_, err = app.Models.User.CreateUserInstance(input.Username, input.Password)
+	if err != nil {
 		errors.ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -125,7 +127,10 @@ func (app *Application) LogoutUserHandler(w http.ResponseWriter, r *http.Request
 
 func (app *Application) CheckAuthHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("authToken")
-	if err != nil {
+	if errorsPkg.Is(err, http.ErrNoCookie) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	} else if err != nil {
 		http.Error(w, "Error reading cookie", http.StatusBadRequest)
 		return
 	}

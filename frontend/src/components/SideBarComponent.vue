@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import logoutIcon from "/src/assets/icons/svg-icons/logout-icon.svg";
 import axiosInstance from "../utils/axiosInstance";
@@ -23,10 +22,6 @@ const submitLogout = async () => {
 };
 
 const userStore = useUserStore();
-
-onMounted(async () => {
-    console.log(userStore.user);
-});
 </script>
 <template>
     <router-link to="/">
@@ -56,7 +51,7 @@ onMounted(async () => {
             </svg>
         </button>
     </router-link>
-    <router-link to="/status">
+    <!-- <router-link to="/status">
         <button
             :class="$route.name === 'status' ? 'active' : ''"
             class="w-[40px] h-[40px] rounded-full flex justify-center items-center cursor-pointer"
@@ -102,7 +97,7 @@ onMounted(async () => {
                 ></path>
             </svg>
         </button>
-    </router-link>
+    </router-link> -->
     <button
         v-if="isUserAuthenticated"
         @click="submitLogout"
@@ -134,7 +129,7 @@ onMounted(async () => {
                 </svg>
             </button>
         </router-link>
-        <router-link to="/profile">
+        <router-link v-if="userStore.isAuthenticated" to="/profile">
             <button
                 class="w-[40px] h-[40px] rounded-full flex justify-center items-center cursor-pointer"
             >

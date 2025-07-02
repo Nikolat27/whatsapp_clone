@@ -21,9 +21,12 @@ func routes(app *Application) *httprouter.Router {
 	router.HandlerFunc(http.MethodPost, "/api/users/chats/", app.GetUserChatsHandler)
 	router.HandlerFunc(http.MethodPost, "/api/users/", app.GetUserInfoHandler)
 	router.HandlerFunc(http.MethodPost, "/api/users/search/", app.SearchUserByUsernameHandler)
-	router.HandlerFunc(http.MethodPost, "/api/users/search-by-id/", app. SearchUserByIdHandler)
+	router.HandlerFunc(http.MethodPost, "/api/users/search-by-id/", app.SearchUserByIdHandler)
 	router.HandlerFunc(http.MethodPut, "/api/users/update/", app.UpdateUserHandler)
 	router.HandlerFunc(http.MethodPut, "/api/users/update-profile", app.UploadProfilePicHandler)
+
+	router.HandlerFunc(http.MethodGet, "/api/users/get/save-messages", app.GetAllSaveMessagesHandler)
+	router.HandlerFunc(http.MethodPost, "/api/users/insert/save-messages/", app.InsertSaveMessageHandler)
 
 	// Message
 	router.HandlerFunc(http.MethodDelete, "/api/messages/delete/:id", app.DeleteMessageHandler)

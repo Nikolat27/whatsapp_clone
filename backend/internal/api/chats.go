@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
@@ -100,7 +99,6 @@ func (app *Application) GetChatMessagesHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	fmt.Println(input.ChatId)
 	chatId, err := convertHelper.StringToObjectId(input.ChatId)
 	if err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -109,6 +107,11 @@ func (app *Application) GetChatMessagesHandler(w http.ResponseWriter, r *http.Re
 
 	msgs, err := app.Models.Message.GetAllMessages(chatId)
 	if err != nil {
+		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := app.Cipher.DecryptChatMessages(&msgs); err != nil {
 		ServerErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
