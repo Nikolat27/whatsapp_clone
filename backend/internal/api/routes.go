@@ -11,6 +11,19 @@ import (
 func routes(app *Application) *httprouter.Router {
 	router := httprouter.New()
 
+	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// security headers for all responses
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+	})
+
 	// Auth
 	router.HandlerFunc(http.MethodPost, "/api/auth/register/", app.RegisterUserHandler)
 	router.HandlerFunc(http.MethodPost, "/api/auth/login/", app.LoginUserHandler)
@@ -40,20 +53,34 @@ func routes(app *Application) *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/api/chats/open-socket", app.ChatSocketHandler)
 
 	// Static files
-	fileServer(router, "/uploads/", http.Dir("./uploads"))
+	secureFileServer(router, "/uploads/", http.Dir("./uploads"))
 
 	return router
 }
 
-func fileServer(router *httprouter.Router, path string, root http.FileSystem) {
+
+func secureFileServer(router *httprouter.Router, path string, root http.FileSystem) {
 	if path[len(path)-1] != '/' {
 		panic("path must end with slash")
 	}
-	// StripPrefix requires path to end with "/"
-	handler := http.StripPrefix(path, http.FileServer(root))
+
+	handler := http.StripPrefix(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'")
+		
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+
+		http.FileServer(root).ServeHTTP(w, r)
+	}))
 
 	router.Handler("GET", path+"*filepath", handler)
 }
+
+
+
 
 func CORSMiddleware(next http.Handler) http.Handler {
 	allowedOrigins, err := getAllowedCORS()
@@ -63,19 +90,22 @@ func CORSMiddleware(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
+		
 		for _, allowed := range allowedOrigins {
 			if origin == allowed {
 				w.Header().Set("Access-Control-Allow-Origin", allowed)
+				w.Header().Set("Vary", "Origin")
 				break
 			}
 		}
+		
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "86400") // 24 hours
 
-		// Preflight request
 		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
@@ -83,11 +113,26 @@ func CORSMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+
 func getAllowedCORS() ([]string, error) {
 	origins := os.Getenv("ALLOWED_CORS_ORIGINS")
 	if origins == "" {
 		return nil, errors.New("ALLOWED_CORS_ORIGINS env variable is empty")
 	}
 
-	return strings.Split(origins, ","), nil
+	originList := strings.Split(origins, ",")
+	var cleanedOrigins []string
+	
+	for _, origin := range originList {
+		clean := strings.TrimSpace(origin)
+		if clean != "" {
+			cleanedOrigins = append(cleanedOrigins, clean)
+		}
+	}
+
+	if len(cleanedOrigins) == 0 {
+		return nil, errors.New("no valid origins in ALLOWED_CORS_ORIGINS")
+	}
+
+	return cleanedOrigins, nil
 }
